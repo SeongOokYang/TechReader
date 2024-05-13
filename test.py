@@ -34,4 +34,4 @@ def search_wiki(text:str):
 
 wiki = wikipediaapi.Wikipedia('201803851@o.cnu.ac.kr','ko')
 
-search_wiki('LLM')
+search_wiki('SDP')
