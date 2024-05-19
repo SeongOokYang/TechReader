@@ -1,0 +1,25 @@
+{
+    "manifest_version" : 3,
+    "name" : "TechReader",
+    "description": "Use Drag to search word Definition. It will search wikipedia",
+    "version" : "1.0", 
+    "permissions" : [
+        "sidePanel"
+    ],
+
+    "background": {
+        "service-worker":["scripts/jquery-3.7.1.min.js","scripts/background.js"],
+        "type" : "module"
+    },
+
+    "content_scripts": [
+        {
+        "matches":["http://*/*", "https://*/*"],
+        "js":["scripts/jquery-3.7.1.min.js","scripts/content_script.js"]
+        }
+    ],
+
+    "side_panel" : {
+        "default_path" : "side_panel.html"
+    }
+}
