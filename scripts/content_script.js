@@ -1,11 +1,13 @@
 let body = document.getElementsByTagName("body")[0];
 
+let selectText = '';
+
 $(body).on("mouseup", getUserSelectText);
 $(body).on("mousedown", deleteButton);
 
 function getUserSelectText(event) {
     let selectObj = window.getSelection();
-    let selectText = selectObj.toString();
+    selectText = selectObj.toString();
     if(selectText !== '' && selectText !== " " && selectText !== "\n") {
         let pluginButton = document.createElement("img");
         pluginButton.src = chrome.runtime.getURL('image/icon.png')
@@ -14,31 +16,33 @@ function getUserSelectText(event) {
         const range = selectObj.getRangeAt(0);
         const rect = range.getBoundingClientRect();
         
+        console.log(selectText);
         pluginButton.style.position = 'absolute';
         pluginButton.style.left = `${rect.left}px`;
         pluginButton.style.top = `${rect.bottom + window.scrollY}px`;
+        //
         pluginButton.style.color = 'black'
         pluginButton.style.width = '30px'
         pluginButton.style.height = '30px'
         pluginButton.style.border = "3px solid black"
-        pluginButton.addEventListener('click', buttonClick)
         document.body.appendChild(pluginButton)
-        //
+        $(pluginButton).on("mousedown", buttonClick);
     }
 }
 
 function buttonClick() {
-    chrome.runtime.sendMessage()
+    console.log(1)
+    chrome.runtime.sendMessage(selectText);
 }
 
 function deleteButton() {
-    let selectText = window.getSelection().toString()
     if(selectText !== '' && selectText !== " " && selectText !== "\n") {
+        console.log(selectText);
         $('#pluginButton').remove();
+        selectText = '';
     }
 }
 
 //단어 밑에 버튼을 생성
 //버튼클릭시 사이드바 열리게
 //버튼 클릭했을 때, 얻어온 단어를 background에 sendMessage()
-//검색 완료후 background가 결과를 전송하면 사이드바에 출력
