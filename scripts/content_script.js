@@ -1,11 +1,11 @@
-let body = document.getElementsByTagName("body")[0];
+let body = document.getElementsByTagName("body")[0]; // DOM의 body를 가져옴
 
-let selectText = '';
+let selectText = ''; // 유저가 드래그(user-select)한 단어가 들어갈 공간
 
-$(body).on("mouseup", getUserSelectText);
-$(body).on("mousedown", deleteButton);
+$(body).on("mouseup", getUserSelectText); // 플러그인 실행을 위한 버튼을 생성하는 이벤트리스너
+$(body).on("mousedown", deleteButton); // 외부 클릭 시(user-select취소) 박스를 없애는 이벤트리스너
 
-function getUserSelectText(event) {
+function getUserSelectText(event) { // 플러그인 버튼 생성 함수
     let selectObj = window.getSelection();
     selectText = selectObj.toString();
     if(selectText !== '' && selectText !== " " && selectText !== "\n") {
@@ -30,12 +30,13 @@ function getUserSelectText(event) {
     }
 }
 
-function buttonClick() {
-    console.log(1)
-    chrome.runtime.sendMessage(selectText);
+function buttonClick() { // 버튼 클릭시, chrome플러그인의 service_worker에 select한 단어의 정의를 요청하는 함수
+    chrome.runtime.sendMessage({message: 'request'},(response)=>{
+        console.log(response.response);
+    });
 }
 
-function deleteButton() {
+function deleteButton() { //버튼을 없애는 함수
     if(selectText !== '' && selectText !== " " && selectText !== "\n") {
         console.log(selectText);
         $('#pluginButton').remove();

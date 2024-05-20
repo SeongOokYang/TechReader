@@ -8,7 +8,7 @@
     ],
 
     "background": {
-        "service-worker":["scripts/background.js"]
+        "service_worker":"scripts/service_worker.js"
     },
 
     "web_accessible_resources" : [
