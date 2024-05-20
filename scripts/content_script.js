@@ -7,7 +7,8 @@ function getUserSelectText(event) {
     let selectObj = window.getSelection();
     let selectText = selectObj.toString();
     if(selectText !== '' && selectText !== " " && selectText !== "\n") {
-        let pluginButton = document.createElement("button");
+        let pluginButton = document.createElement("img");
+        pluginButton.src = chrome.runtime.getURL('image/icon.png')
         $(pluginButton).attr('id',"pluginButton");
         //chatGPT 생성 코드
         const range = selectObj.getRangeAt(0);
@@ -19,19 +20,20 @@ function getUserSelectText(event) {
         pluginButton.style.color = 'black'
         pluginButton.style.width = '30px'
         pluginButton.style.height = '30px'
-        pluginButton.style.fontSize = '10px'
-        pluginButton.innerText = '검색'
-        pluginButton.style.padding = '0px'
-        console.log('22')
+        pluginButton.style.border = "3px solid black"
+        pluginButton.addEventListener('click', buttonClick)
         document.body.appendChild(pluginButton)
         //
     }
 }
 
+function buttonClick() {
+    chrome.runtime.sendMessage()
+}
+
 function deleteButton() {
     let selectText = window.getSelection().toString()
     if(selectText !== '' && selectText !== " " && selectText !== "\n") {
-        console.log('33')
         $('#pluginButton').remove();
     }
 }

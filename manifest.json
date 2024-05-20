@@ -12,6 +12,12 @@
         "type" : "module"
     },
 
+    "web_accessible_resources" : [
+        {
+            "resources":["image/icon.png"],
+            "matches": ["http://*/*", "https://*/*"]
+        }
+    ],
     "content_scripts": [
         {
         "matches":["http://*/*", "https://*/*"],
