@@ -16,7 +16,6 @@ function getUserSelectText(event) { // 플러그인 버튼 생성 함수
         const range = selectObj.getRangeAt(0);
         const rect = range.getBoundingClientRect();
         
-        console.log(selectText);
         pluginButton.style.position = 'absolute';
         pluginButton.style.left = `${rect.left}px`;
         pluginButton.style.top = `${rect.bottom + window.scrollY}px`;
@@ -31,8 +30,8 @@ function getUserSelectText(event) { // 플러그인 버튼 생성 함수
 }
 
 function buttonClick() { // 버튼 클릭시, chrome플러그인의 service_worker에 select한 단어의 정의를 요청하는 함수
-    chrome.runtime.sendMessage({message: 'request'},(response)=>{
-        console.log(response.response);
+    chrome.runtime.sendMessage({"request" : selectText},function (response) {
+        console.log(response)
     });
 }
 
