@@ -30,9 +30,16 @@ function getUserSelectText(event) { // 플러그인 버튼 생성 함수
 }
 
 function buttonClick() { // 버튼 클릭시, chrome플러그인의 service_worker에 select한 단어의 정의를 요청하는 함수
-    chrome.runtime.sendMessage({"request" : selectText},function (response) {
-        console.log(response)
+    chrome.runtime.sendMessage({request : selectText, action:"wikiSearch"},function (response) {
+        if(response !== "error occurred") {
+            console.log(response);
+            requestOpenSideBar();
+        }
     });
+}
+
+function requestOpenSideBar() {
+    chrome.runtime.sendMessage({request : selectText, action:"openSideBar"})
 }
 
 function deleteButton() { //버튼을 없애는 함수

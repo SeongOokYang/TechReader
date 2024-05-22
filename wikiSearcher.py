@@ -36,7 +36,6 @@ PORT = 8888
 
 def search_wiki(text:str):
     wikiReader = WIKI.page(text)
-    print('touch search_wiki function')
     if(wikiReader.exists()):
         #if(list(wikiReader.categories.keys())[0] == '분류:동음이의어 문서'):
         #    exist_check = re_search(wikiReader.text)
@@ -48,14 +47,12 @@ def search_wiki(text:str):
         return '해당 단어가 존재하지 않습니다.'
 
 async def handle_request(request):
-    print('touch handle_request')
     data = await request.json()
     data = data.get('request')
     print(data)
     return web.Response(text = search_wiki(data))
 
 def main():
-    print('open main()')
     app = web.Application()
     app.router.add_post('/',handle_request)
     web.run_app(app, host=ADDRESS, port=PORT)
