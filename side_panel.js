@@ -10,3 +10,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     
     return true;
 });
+
+addEventListener("beforeunload", (event) => {
+    chrome.runtime.sendMessage({action:"closeSideBar"})
+});

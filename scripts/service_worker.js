@@ -15,6 +15,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) { 
             sendResponse("error occurred");
         });
     }else if(request.action === "openSideBar"){
+        chrome.sidePanel.open({tabId : sender.tab.id});
         if(!isSidePanelOpen) {
             chrome.sidePanel.open({tabId : sender.tab.id})
             isSidePanelOpen = true;
@@ -23,6 +24,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) { 
         }
     }else if(request.action === "sideBarText") {
         sendResponse(searchOutcome);
+    }else if(request.action === 'closeSideBar') {
+        isSidePanelOpen = false;
     }
 
     return true;
