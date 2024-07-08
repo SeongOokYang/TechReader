@@ -11,6 +11,10 @@ WIKI = wikipediaapi.Wikipedia('201803851@o.cnu.ac.kr','ko')
 ADDRESS = '127.0.0.1'
 PORT = 8888
 
+def wiki_data_json(word, summary, explain, related):
+    result = {'word': word, 'summary': summary, 'explain' : explain, 'related': related}
+    return json.dumps(result, ensure_ascii=False)
+    
 #def re_search(homonym:str):
 #    '''
 ##    동음이의어 페이지로 넘어갔을 때, 동음이의어들의 정의가 존재하는지 확인하는 함수
@@ -41,7 +45,15 @@ def search_wiki(text:str):
         #    exist_check = re_search(wikiReader.text)
         #else:
         print(wikiReader.text)
-        return wikiReader.text
+        word = text
+        summary = wikiReader.summary
+        explain = wikiReader.text
+        related = wikiReader.links
+        related = str(related)
+        print(related)
+        result = wiki_data_json(word, summary, explain, related)
+        print(result)
+        return result
     else:
         print('해당 단어가 존재하지 않습니다.')
         return '해당 단어가 존재하지 않습니다.'
