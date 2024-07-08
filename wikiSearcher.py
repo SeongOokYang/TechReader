@@ -50,9 +50,7 @@ def search_wiki(text:str):
         explain = wikiReader.text
         related = wikiReader.links
         related = str(related)
-        print(related)
         result = wiki_data_json(word, summary, explain, related)
-        print(result)
         return result
     else:
         print('해당 단어가 존재하지 않습니다.')

@@ -1,13 +1,26 @@
 let wordDiv = document.getElementById('word');
 let summaryDiv = document.getElementById('summary');
 let explainDiv = document.getElementById('explain');
-let relatedDiv = document.getElementById('related');
+let relatedList = document.getElementById('relatedList');
+
+function relateLi(relatedStr) {
+    let relatedDict = relatedStr.split('),')
+    for (let val of relatedDict) {
+        val = val+')'
+        let li = document.createElement('LI');
+        let textNode = document.createTextNode(val);
+        li.appendChild(textNode);
+        relatedList.appendChild(li);
+    }
+}
+
 function putDataInDiv(json_data) {
     data = JSON.parse(json_data);
     wordDiv.innerText = data.word;
     summaryDiv.innerText = data.summary;
     explainDiv.innerText = data.explain;
-    relatedDiv.innerText = data.related;
+    let relatedStr = data.related;
+    relateLi(relatedStr);
 }
 
 chrome.runtime.sendMessage({action:"sideBarText"}, (response) => {
