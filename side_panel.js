@@ -4,14 +4,15 @@ let explainDiv = document.getElementById('explain');
 let relatedList = document.getElementById('relatedList');
 
 function relateLi(relatedStr) {
-    let relatedDict = relatedStr.split('),')
+    let relatedDict = relatedStr.replace(/^({|})+|({|})+$/g, '');
+    relatedDict = relatedDict.split('),')
     for (let val of relatedDict) {
         val = val+')'
         let li = document.createElement('LI');
         let textNode = document.createTextNode(val);
         li.appendChild(textNode);
         relatedList.appendChild(li);
-    }
+    }   
 }
 
 function putDataInDiv(json_data) {
@@ -29,7 +30,7 @@ chrome.runtime.sendMessage({action:"sideBarText"}, (response) => {
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) { 
     let message = request.request;
     if(request.action === "reFill") {
-        outcomeDiv.innerText = message;
+        putDataInDiv(message);
     }
     
     return true;

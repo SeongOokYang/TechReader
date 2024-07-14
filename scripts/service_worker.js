@@ -17,7 +17,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) { 
     }else if(request.action === "openSideBar"){
         chrome.sidePanel.open({tabId : sender.tab.id});
         if(!isSidePanelOpen) {
-            chrome.sidePanel.open({tabId : sender.tab.id})
             isSidePanelOpen = true;
         }else {
             chrome.runtime.sendMessage({request: searchOutcome, action: "reFill"})

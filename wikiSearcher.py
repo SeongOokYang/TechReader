@@ -54,7 +54,7 @@ def search_wiki(text:str):
         return result
     else:
         print('해당 단어가 존재하지 않습니다.')
-        return '해당 단어가 존재하지 않습니다.'
+        return wiki_data_json(text, '해당 단어가 존재하지 않습니다.','해당 단어가 존재하지 않습니다.','해당 단어가 존재하지 않습니다.')
 
 async def handle_request(request):
     data = await request.json()
