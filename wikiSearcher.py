@@ -14,7 +14,14 @@ PORT = 8888
 def wiki_data_json(word, summary, explain, related):
     result = {'word': word, 'summary': summary, 'explain' : explain, 'related': related}
     return json.dumps(result, ensure_ascii=False)
-    
+
+def related2str(related):
+    result = []
+    for link in related.values():
+        link, _ = str(link).split(" (id:")
+        result.append(link)
+
+    return str(result)
 #def re_search(homonym:str):
 #    '''
 ##    동음이의어 페이지로 넘어갔을 때, 동음이의어들의 정의가 존재하는지 확인하는 함수
@@ -49,7 +56,8 @@ def search_wiki(text:str):
         summary = wikiReader.summary
         explain = wikiReader.text
         related = wikiReader.links
-        related = str(related)
+        related = related2str(related)
+        print(related)
         result = wiki_data_json(word, summary, explain, related)
         return result
     else:
