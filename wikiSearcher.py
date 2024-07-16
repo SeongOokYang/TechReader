@@ -68,7 +68,8 @@ async def handle_request(request):
     data = await request.json()
     data = data.get('request')
     print(data)
-    return web.Response(text = search_wiki(data))
+    print(data['usePara'][0])
+    return web.Response(text = search_wiki(data['text']))
 
 def main():
     app = web.Application()
