@@ -22,35 +22,26 @@ def related2str(related):
         result.append(link)
 
     return str(result)
-#def re_search(homonym:str):
-#    '''
-##    동음이의어 페이지로 넘어갔을 때, 동음이의어들의 정의가 존재하는지 확인하는 함수
-#    '''
-#    result_arr = {}
-#    re_texts = homonym.split('\n')[2:]
-#    for re_text in re_texts:
-#        re_text = remove_section(re_text)
-#        exist_finder = WIKI.page(re_text)
-#        result_arr[re_text] = exist_finder.exists()
-#
-#    return result_arr
+def re_search(homonym:str):
+    '''
+    동음이의어 페이지로 넘어갔을 때, 동음이의어들의 정의가 존재하는지 확인하는 함수
+    '''
+    result_arr = {}
+    re_texts = homonym.split('\n')[2:]
+    for re_text in re_texts:
+        re_text = re_text.strip()
+        exist_finder = WIKI.page(re_text)
+        result_arr[re_text] = exist_finder.exists() 
 
-#def remove_section(text:str):
-#    '''
-#    chatGPT 생성 코드 - wikipedia의 단어가 ~~~(section)과 같이 되어 있을때 검색 결과가 나오지 않으므로 제거해주어야 함
-#    '''
-#
-#    pattern = r"\([^()]*\)"
-#    result = re.sub(pattern, "", text)
-#
-#    return result
+    return result_arr
 
 def search_wiki(text:str):
     wikiReader = WIKI.page(text)
     if(wikiReader.exists()):
-        #if(list(wikiReader.categories.keys())[0] == '분류:동음이의어 문서'):
-        #    exist_check = re_search(wikiReader.text)
-        #else:
+        for category in list(wikiReader.categories.keys()):
+            if('동음이의' in category or '동명이인' in category):
+                result = re_search(wikiReader.text)
+                return result
         print(wikiReader.text)
         word = text
         summary = wikiReader.summary
