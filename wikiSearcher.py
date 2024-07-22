@@ -22,26 +22,32 @@ def related2str(related):
         result.append(link)
 
     return str(result)
-def re_search(homonym:str):
+
+def check_homonym(wikiReader):
+    for category in list(wikiReader.categories.keys()):
+            if('동음이의' in category or '동명이인' in category):
+                return True
+    return False
+
+
+def handle_homonym(links):
+    return 'tree (명령어)'
+    
+
+def re_search(wikiReader):
     '''
     동음이의어 페이지로 넘어갔을 때, 동음이의어들의 정의가 존재하는지 확인하는 함수
     '''
-    result_arr = {}
-    re_texts = homonym.split('\n')[2:]
-    for re_text in re_texts:
-        re_text = re_text.strip()
-        exist_finder = WIKI.page(re_text)
-        result_arr[re_text] = exist_finder.exists() 
-
-    return result_arr
+    links = wikiReader.links
+    text = handle_homonym(links)
+    result_page = WIKI.page(text)
+    return result_page
 
 def search_wiki(text:str):
     wikiReader = WIKI.page(text)
     if(wikiReader.exists()):
-        for category in list(wikiReader.categories.keys()):
-            if('동음이의' in category or '동명이인' in category):
-                result = re_search(wikiReader.text)
-                return result
+        if(check_homonym(wikiReader)):
+            wikiReader = re_search(wikiReader)
         print(wikiReader.text)
         word = text
         summary = wikiReader.summary
