@@ -16,6 +16,13 @@ function relateLi(relatedStr) {
     }
 }
 
+function getHistory() {
+    chrome.runtime.sendMessage({ action: "getHistory" }, (history) => {
+        displayHistory(history);
+    });
+}
+
+
 function putDataInDiv(json_data) {
     data = JSON.parse(json_data);
     wordDiv.innerText = data.word;
@@ -23,6 +30,7 @@ function putDataInDiv(json_data) {
     explainDiv.innerText = data.explain;
     let relatedStr = data.related;
     relateLi(relatedStr);
+    getHistory();
 }
 
 function displayHistory(history) {
@@ -37,7 +45,6 @@ function displayHistory(history) {
             chrome.runtime.sendMessage({ request: word, action: "wikiSearch" }, function (response) {
                 if (response !== "error occurred") {
                     console.log(response);
-                    requestOpenSideBar();
                 }
             });
         };
@@ -60,8 +67,4 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
 addEventListener("beforeunload", (event) => {
     chrome.runtime.sendMessage({ action: "closeSideBar" });
-});
-
-chrome.runtime.sendMessage({ action: "getHistory" }, (history) => {
-    displayHistory(history);
 });
