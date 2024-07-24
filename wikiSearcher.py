@@ -31,7 +31,17 @@ def check_homonym(wikiReader):
 
 
 def handle_homonym(links):
-    return 'tree (명령어)'
+    for link in links:
+        if('동음이의' in link or '동명이인' in link):
+            continue
+        print(link)
+        linkReader = WIKI.page(link)
+        if(linkReader.exists()):
+            print(linkReader.summary)
+        
+    result_text = 'tree (명령어)'
+    
+    return result_text
     
 
 def re_search(wikiReader):
@@ -39,6 +49,7 @@ def re_search(wikiReader):
     동음이의어 페이지로 넘어갔을 때, 동음이의어들의 정의가 존재하는지 확인하는 함수
     '''
     links = wikiReader.links
+    print(links)
     text = handle_homonym(links)
     result_page = WIKI.page(text)
     return result_page
