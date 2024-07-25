@@ -37,7 +37,7 @@ def handle_homonym(links):
         print(link)
         linkReader = WIKI.page(link)
         if(linkReader.exists()):
-            print(linkReader.summary)
+            print(linkReader.text[:60])
         
     result_text = 'tree (명령어)'
     
