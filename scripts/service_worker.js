@@ -10,6 +10,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 sendResponse(response);
                 searchOutcome = response;
                 addToSearchHistory(request.request);
+                if (isSidePanelOpen) {
+                    chrome.runtime.sendMessage({ request: searchOutcome, action: "reFill" });
+                }
             } else {
                 sendResponse("error occurred in service-worker");
             }

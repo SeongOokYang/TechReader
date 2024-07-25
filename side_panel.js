@@ -22,13 +22,13 @@ function getHistory() {
     });
 }
 
-
 function putDataInDiv(json_data) {
     data = JSON.parse(json_data);
     wordDiv.innerText = data.word;
     summaryDiv.innerText = data.summary;
     explainDiv.innerText = data.explain;
     let relatedStr = data.related;
+    relatedList.innerHTML = ''; // Clear the previous related list
     relateLi(relatedStr);
     getHistory();
 }
@@ -41,10 +41,11 @@ function displayHistory(history) {
         let link = document.createElement('a');
         link.href = '#';
         link.innerText = word;
-        link.onclick = function () {
+        link.onclick = function (event) {
+            event.preventDefault(); // Prevent the default link behavior
             chrome.runtime.sendMessage({ request: word, action: "wikiSearch" }, function (response) {
                 if (response !== "error occurred") {
-                    console.log(response);
+                    putDataInDiv(response); // Update the side panel with the new data
                 }
             });
         };
