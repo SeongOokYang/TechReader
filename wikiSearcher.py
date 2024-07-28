@@ -57,8 +57,8 @@ def re_search(wikiReader):
 def search_wiki(text:str):
     wikiReader = WIKI.page(text)
     if(wikiReader.exists()):
-        if(check_homonym(wikiReader)):
-            wikiReader = re_search(wikiReader)
+        # if(check_homonym(wikiReader)):
+        #     wikiReader = re_search(wikiReader)
         print(wikiReader.text)
         word = text
         summary = wikiReader.summary
@@ -69,14 +69,14 @@ def search_wiki(text:str):
         result = wiki_data_json(word, summary, explain, related)
         return result
     else:
-        print('해당 단어가 존재하지 않습니다.')
+        print('해당 단어가 존재하지 않습니다.') 
         return wiki_data_json(text, '해당 단어가 존재하지 않습니다.','해당 단어가 존재하지 않습니다.','해당 단어가 존재하지 않습니다.')
 
 async def handle_request(request):
     data = await request.json()
     data = data.get('request')
     print(data)
-    print(data['usePara'][0])
+    print(data['usePara'])
     return web.Response(text = search_wiki(data['text']))
 
 def main():

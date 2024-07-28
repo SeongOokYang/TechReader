@@ -17,6 +17,7 @@ function relateLi(relatedStr) {
 
 function getHistory() {
     chrome.runtime.sendMessage({ action: "getHistory" }, (history) => {
+        console.log(history)
         displayHistory(history);
     });
 }
@@ -35,14 +36,15 @@ function putDataInDiv(json_data) {
 function displayHistory(history) {
     console.log("Received history:", history);  // 로그 추가
     historyList.innerHTML = '';
-    history.forEach(word => {
+    history.forEach(hist => {
+        let word = hist.text
         let li = document.createElement('LI');
         let link = document.createElement('a');
         link.href = '#';
         link.innerText = word;
         link.onclick = function (event) {
             event.preventDefault(); // Prevent the default link behavior
-            chrome.runtime.sendMessage({ request: word, action: "wikiSearch" }, function (response) {
+            chrome.runtime.sendMessage({ request: hist, action: "wikiSearch" }, function (response) {
                 if (response !== "error occurred") {
                     putDataInDiv(response); // Update the side panel with the new data
                 }

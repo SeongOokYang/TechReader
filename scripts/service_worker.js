@@ -39,7 +39,10 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 });
 
 function addToSearchHistory(word) {
-    if (!searchHistory.includes(word)) {
+    const includesArray = (hist, comp) => {
+        return hist.some(item => item.text === comp.text);
+    }
+    if (!includesArray(searchHistory,word)) {
         searchHistory.push(word);
     }
 }
