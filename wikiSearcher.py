@@ -14,42 +14,58 @@ PORT = 8888
 def wiki_data_json(word, summary, explain, related):
     result = {'word': word, 'summary': summary, 'explain' : explain, 'related': related}
     return json.dumps(result, ensure_ascii=False)
-    
-#def re_search(homonym:str):
-#    '''
-##    동음이의어 페이지로 넘어갔을 때, 동음이의어들의 정의가 존재하는지 확인하는 함수
-#    '''
-#    result_arr = {}
-#    re_texts = homonym.split('\n')[2:]
-#    for re_text in re_texts:
-#        re_text = remove_section(re_text)
-#        exist_finder = WIKI.page(re_text)
-#        result_arr[re_text] = exist_finder.exists()
-#
-#    return result_arr
 
-#def remove_section(text:str):
-#    '''
-#    chatGPT 생성 코드 - wikipedia의 단어가 ~~~(section)과 같이 되어 있을때 검색 결과가 나오지 않으므로 제거해주어야 함
-#    '''
-#
-#    pattern = r"\([^()]*\)"
-#    result = re.sub(pattern, "", text)
-#
-#    return result
+def related2str(related):
+    result = []
+    for link in related.values():
+        link, _ = str(link).split(" (id:")
+        result.append(link)
+
+    return str(result)
+
+def check_homonym(wikiReader):
+    for category in list(wikiReader.categories.keys()):
+            if('동음이의' in category or '동명이인' in category):
+                return True
+    return False
+
+
+def handle_homonym(links):
+    for link in links:
+        if('동음이의' in link or '동명이인' in link):
+            continue
+        print(link)
+        linkReader = WIKI.page(link)
+        if(linkReader.exists()):
+            print(linkReader.text[:60])
+        
+    result_text = 'tree (명령어)'
+    
+    return result_text
+    
+
+def re_search(wikiReader):
+    '''
+    동음이의어 페이지로 넘어갔을 때, 동음이의어들의 정의가 존재하는지 확인하는 함수
+    '''
+    links = wikiReader.links
+    print(links)
+    text = handle_homonym(links)
+    result_page = WIKI.page(text)
+    return result_page
 
 def search_wiki(text:str):
     wikiReader = WIKI.page(text)
     if(wikiReader.exists()):
-        #if(list(wikiReader.categories.keys())[0] == '분류:동음이의어 문서'):
-        #    exist_check = re_search(wikiReader.text)
-        #else:
+        if(check_homonym(wikiReader)):
+            wikiReader = re_search(wikiReader)
         print(wikiReader.text)
         word = text
         summary = wikiReader.summary
         explain = wikiReader.text
         related = wikiReader.links
-        related = str(related)
+        related = related2str(related)
+        print(related)
         result = wiki_data_json(word, summary, explain, related)
         return result
     else:
@@ -60,7 +76,8 @@ async def handle_request(request):
     data = await request.json()
     data = data.get('request')
     print(data)
-    return web.Response(text = search_wiki(data))
+    print(data['usePara'][0])
+    return web.Response(text = search_wiki(data['text']))
 
 def main():
     app = web.Application()
