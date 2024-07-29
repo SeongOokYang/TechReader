@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 import re
 from pecab import PeCab
+import requests
+from bs4 import BeautifulSoup
 
 WIKI = wikipediaapi.Wikipedia('201803851@o.cnu.ac.kr','ko')
 ADDRESS = '127.0.0.1'
@@ -34,7 +36,6 @@ def handle_homonym(links):
     for link in links:
         if('동음이의' in link or '동명이인' in link):
             continue
-        print(link)
         linkReader = WIKI.page(link)
         if(linkReader.exists()):
             print(linkReader.text[:60])
@@ -49,7 +50,6 @@ def re_search(wikiReader):
     동음이의어 페이지로 넘어갔을 때, 동음이의어들의 정의가 존재하는지 확인하는 함수
     '''
     links = wikiReader.links
-    print(links)
     text = handle_homonym(links)
     result_page = WIKI.page(text)
     return result_page
@@ -65,7 +65,6 @@ def search_wiki(text:str):
         explain = wikiReader.text
         related = wikiReader.links
         related = related2str(related)
-        print(related)
         result = wiki_data_json(word, summary, explain, related)
         return result
     else:
@@ -76,12 +75,29 @@ async def handle_request(request):
     data = await request.json()
     data = data.get('request')
     print(data)
-    print(data['usePara'])
     return web.Response(text = search_wiki(data['text']))
+
+def crawl_text(url):
+    response = requests.get(url)
+    if response.status_code == 200:
+        html = response.text
+        soup = BeautifulSoup(html, 'html.parser')
+        result = re.sub("\n+", "\n", soup.get_text())
+        return result
+    else:
+        print(response.status_code)
+        return 'error in crawl_text'
+
+async def get_web_text(request):
+    data = await request.json()
+    data = data.get('request')
+    print(data)
+    return web.Response(text = crawl_text(data))
 
 def main():
     app = web.Application()
     app.router.add_post('/',handle_request)
+    app.router.add_post('/get_text', get_web_text)
     web.run_app(app, host=ADDRESS, port=PORT)
 
 if __name__ == "__main__":

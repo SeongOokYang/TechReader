@@ -19,7 +19,11 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         }).catch((error) => {
             sendResponse("error occurred");
         });
-    } else if (request.action === "openSideBar") {
+    } else if(request.action === "get_text") {
+        postData('http://127.0.0.1:8888/get_text', message).then((response) => {
+            sendResponse(response)
+        })
+    }else if (request.action === "openSideBar") {
         chrome.sidePanel.open({ tabId: sender.tab.id });
         if (!isSidePanelOpen) {
             isSidePanelOpen = true;
