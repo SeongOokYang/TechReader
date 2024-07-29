@@ -13,7 +13,7 @@
 
     "web_accessible_resources" : [
         {
-            "resources":["image/icon.png"],
+            "resources":["image/image_done.png", "image/image_ready.png"],
             "matches": ["http://*/*", "https://*/*"]
         }
     ],

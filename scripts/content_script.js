@@ -6,6 +6,29 @@ let textUsePara = [];
 $(body).on("mouseup", getTextNode); // 플러그인 실행을 위한 버튼을 생성하는 이벤트리스너
 $(body).on("mousedown", deleteButton); // 외부 클릭 시(user-select취소) 박스를 없애는 이벤트리스너
 
+function makeButton(selectObj) {
+    let pluginButton = document.createElement("img");
+    pluginButton.src = chrome.runtime.getURL('image/image_ready.png');
+    $(pluginButton).attr('id',"pluginButton");
+    //chatGPT 생성 코드
+    const range = selectObj.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+        
+    pluginButton.style.position = 'absolute';
+    pluginButton.style.left = `${rect.left}px`;
+    pluginButton.style.top = `${rect.bottom + window.scrollY}px`;
+    pluginButton.style.color = 'black'
+    pluginButton.style.width = '30px'
+    pluginButton.style.height = '30px'
+    //
+    document.body.appendChild(pluginButton)
+}
+
+function changeButton() {
+    $("#pluginButton").attr("src",chrome.runtime.getURL('image/image_done.png'));
+    $("#pluginButton").on("mousedown", buttonClick);
+}
+
 function findUsePara(textNodes, text) {
     let usePara = [];
     let allTexts = textNodes.split('\n');
@@ -22,37 +45,23 @@ function findUsePara(textNodes, text) {
 function getTextNode(event) {
     let textNodes = "";
     let url = window.location.href;
-    chrome.runtime.sendMessage({request : url, action : 'get_text'}, function(response) {
-        textNodes = response;
-        getUserSelectText(textNodes);
-    });
+    let selectObj = window.getSelection();
+    selectText = selectObj.toString().trim();
+    if(selectText !== '' && selectText !== " " && selectText !== "\n") {
+        makeButton(selectObj);
+        chrome.runtime.sendMessage({request : url, action : 'get_text'}, function(response) {
+            textNodes = response;
+            getUserSelectText(textNodes);
+        });
+    }
 }
 //
 
 function getUserSelectText(textNodes) { // 플러그인 버튼 생성 함수
-    let selectObj = window.getSelection();
-    selectText = selectObj.toString().trim();
-    if(selectText !== '' && selectText !== " " && selectText !== "\n") {
-        textUsePara = findUsePara(textNodes, selectText);
-        let pluginButton = document.createElement("img");
-        pluginButton.src = chrome.runtime.getURL('image/icon.png')
-        $(pluginButton).attr('id',"pluginButton");
-        //chatGPT 생성 코드
-        const range = selectObj.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
-        
-        pluginButton.style.position = 'absolute';
-        pluginButton.style.left = `${rect.left}px`;
-        pluginButton.style.top = `${rect.bottom + window.scrollY}px`;
-        //
-        pluginButton.style.color = 'black'
-        pluginButton.style.width = '30px'
-        pluginButton.style.height = '30px'
-        pluginButton.style.border = "3px solid black"
-        document.body.appendChild(pluginButton)
-        $(pluginButton).on("mousedown", buttonClick);
-    }
+    textUsePara = findUsePara(textNodes, selectText);
+    changeButton();
 }
+
 
 function buttonClick() { // 버튼 클릭시, chrome플러그인의 service_worker에 select한 단어의 정의를 요청하는 함수
     let requestData = {text:selectText, usePara:textUsePara};
@@ -61,6 +70,7 @@ function buttonClick() { // 버튼 클릭시, chrome플러그인의 service_work
         if(response !== "error occurred") {
             console.log(response);
             requestOpenSideBar();
+            deleteButton();
         }
     });
 }
@@ -70,11 +80,7 @@ function requestOpenSideBar() {
 }
 
 function deleteButton() { //버튼을 없애는 함수
-    if(selectText !== '' && selectText !== " " && selectText !== "\n") {
-        console.log(selectText);
-        $('#pluginButton').remove();
-        selectText = '';
-    }
+    $('#pluginButton').remove();
 }
 
 //단어 밑에 버튼을 생성
