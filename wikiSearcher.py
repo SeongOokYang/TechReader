@@ -43,6 +43,22 @@ def handle_homonym(links):
     
     return result_text
     
+def clean_text(text):
+    # LaTeX 형식의 수식 및 기호 제거
+    text = re.sub(r'\{\{[^{}]+\}\}', '', text)  # 중괄호 내부의 LaTeX 수식 제거
+    text = re.sub(r'\{\\displaystyle [^{}]+\}', '', text)  # \displaystyle 제거
+    text = re.sub(r'\{\\mathcal [^{}]+\}', '', text)  # \mathcal 제거
+    text = re.sub(r'\\displaystyle', '', text)  # \displaystyle 제거
+    text = re.sub(r'\\mathcal', '', text)  # \mathcal 제거
+    text = re.sub(r'\$[^\$]*\$', '', text)  # $...$ 형식의 LaTeX 수식 제거
+
+    # 연속된 공백을 하나의 공백으로 축소
+    text = re.sub(r'\s+', ' ', text)
+    text = re.sub(r'\{\{[^\}]+\}\}', '', text)  # 중괄호 내부 내용 제거
+    text = re.sub(r'\[\[[^\]]+\]\]', '', text)  # 대괄호 내부 내용 제거
+    text = re.sub(r'{[^{}]+}', '', text)  # 중괄호 내부 내용 제거
+
+    return text
 
 def re_search(wikiReader):
     '''
@@ -54,23 +70,18 @@ def re_search(wikiReader):
     result_page = WIKI.page(text)
     return result_page
 
-def search_wiki(text:str):
+def search_wiki(text: str):
     wikiReader = WIKI.page(text)
-    if(wikiReader.exists()):
-        # if(check_homonym(wikiReader)):
-        #     wikiReader = re_search(wikiReader)
-        print(wikiReader.text)
+    if wikiReader.exists():
         word = text
-        summary = wikiReader.summary
-        explain = wikiReader.text
+        summary = clean_text(wikiReader.summary)
+        explain = clean_text(wikiReader.text)
         related = wikiReader.links
-        related = related2str(related)
-        print(related)
+        related = str(related)
         result = wiki_data_json(word, summary, explain, related)
         return result
     else:
-        print('해당 단어가 존재하지 않습니다.') 
-        return wiki_data_json(text, '해당 단어가 존재하지 않습니다.','해당 단어가 존재하지 않습니다.','해당 단어가 존재하지 않습니다.')
+        return wiki_data_json(text, '해당 단어가 존재하지 않습니다.', '해당 단어가 존재하지 않습니다.', '해당 단어가 존재하지 않습니다.')
 
 async def handle_request(request):
     data = await request.json()
