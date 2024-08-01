@@ -8,6 +8,7 @@ import re
 from pecab import PeCab
 import requests
 from bs4 import BeautifulSoup
+import homonym_handling.homonym_handler as homonym_handler
 
 WIKI = wikipediaapi.Wikipedia('201803851@o.cnu.ac.kr','ko')
 ADDRESS = '127.0.0.1'
@@ -31,34 +32,46 @@ def check_homonym(wikiReader):
                 return True
     return False
 
-
-def handle_homonym(links):
+def handle_homonym(fullText, links, usePara):
+    linkArr = []
+    texts = fullText.split('\n')
+    textArr = []
+    linkStrs = related2str(links)
+    linkStrs = re.sub(r'^\[|\]$',"",linkStrs)
+    links = linkStrs.split(",")
     for link in links:
         if('동음이의' in link or '동명이인' in link):
             continue
-        linkReader = WIKI.page(link)
-        if(linkReader.exists()):
-            print(linkReader.text[:60])
-        
-    result_text = 'tree (명령어)'
-    
-    return result_text
+        linkArr.append(link)
+
+    for link in linkArr:
+        for text in texts:
+            if link in text:
+                textArr.append(text)
+    result_Reader = homonym_handler.checkSimilarity(textArr, usePara)
+    # similarArr = checkSimilarity(linkArr, usePara)    
+    # max_index = similarArr.index(max(similarArr))
+    # result_Reader = WIKI.page(links[max_index])
+
+    return result_Reader
     
 
-def re_search(wikiReader):
+def re_search(wikiReader, usePara):
     '''
     동음이의어 페이지로 넘어갔을 때, 동음이의어들의 정의가 존재하는지 확인하는 함수
     '''
     links = wikiReader.links
-    text = handle_homonym(links)
-    result_page = WIKI.page(text)
+    text = wikiReader.text
+    result_page = WIKI.page(handle_homonym(text, links, usePara))
     return result_page
 
-def search_wiki(text:str):
+def search_wiki(data):
+    text = data['text']
+    usePara = data['usePara']
     wikiReader = WIKI.page(text)
     if(wikiReader.exists()):
-        # if(check_homonym(wikiReader)):
-        #     wikiReader = re_search(wikiReader)
+        if(check_homonym(wikiReader)):
+            wikiReader = re_search(wikiReader, usePara)
         print(wikiReader.text)
         word = text
         summary = wikiReader.summary
@@ -75,7 +88,7 @@ async def handle_request(request):
     data = await request.json()
     data = data.get('request')
     print(data)
-    return web.Response(text = search_wiki(data['text']))
+    return web.Response(text = search_wiki(data))
 
 def crawl_text(url):
     response = requests.get(url)
