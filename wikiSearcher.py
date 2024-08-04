@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 import re
 from pecab import PeCab
+from sklearn.feature_extraction.text import TfidfVectorizer #need 'pip install scikit-learn'
+from sklearn.metrics.pairwise import cosine_similarity
 
 WIKI = wikipediaapi.Wikipedia('201803851@o.cnu.ac.kr','ko')
 ADDRESS = '127.0.0.1'
@@ -30,37 +32,44 @@ def check_homonym(wikiReader):
     return False
 
 
-def handle_homonym(links):
-    for link in links:
-        if('동음이의' in link or '동명이인' in link):
-            continue
-        print(link)
-        linkReader = WIKI.page(link)
-        if(linkReader.exists()):
-            print(linkReader.text[:60])
-        
-    result_text = 'tree (명령어)'
-    
-    return result_text
-    
+def handle_homonym(links, original_text):
+    best_match = None
+    highest_similarity = 0
+    vectorizer = TfidfVectorizer().fit_transform([original_text])
+    original_vector = vectorizer.toarray()[0]
 
-def re_search(wikiReader):
-    '''
-    동음이의어 페이지로 넘어갔을 때, 동음이의어들의 정의가 존재하는지 확인하는 함수
-    '''
+    for link in links:
+        if '동음이의' in link or '동명이인' in link:
+            continue
+        
+        linkReader = WIKI.page(link)
+        if linkReader.exists():
+            link_text = linkReader.text
+            link_vector = vectorizer.transform([link_text]).toarray()[0]
+            similarity = cosine_similarity([original_vector], [link_vector])[0][0]
+
+            if similarity > highest_similarity:
+                highest_similarity = similarity
+                best_match = link
+
+    if best_match:
+        return best_match
+    else:
+        return 'tree (명령어)'  # 적절한 기본값을 반환하는 부분으로 보임
+
+def re_search(wikiReader, original_text):
     links = wikiReader.links
-    print(links)
-    text = handle_homonym(links)
-    result_page = WIKI.page(text)
+    best_match_text = handle_homonym(links, original_text)
+    result_page = WIKI.page(best_match_text)
     return result_page
 
-def search_wiki(text:str):
+def search_wiki(text: str):
     wikiReader = WIKI.page(text)
-    if(wikiReader.exists()):
-        # if(check_homonym(wikiReader)):
-        #     wikiReader = re_search(wikiReader)
-        print(wikiReader.text)
+    if wikiReader.exists():
+        if check_homonym(wikiReader):
+            wikiReader = re_search(wikiReader, wikiReader.text)
         word = text
+        print(wikiReader.text)
         summary = wikiReader.summary
         explain = wikiReader.text
         related = wikiReader.links
@@ -69,8 +78,7 @@ def search_wiki(text:str):
         result = wiki_data_json(word, summary, explain, related)
         return result
     else:
-        print('해당 단어가 존재하지 않습니다.') 
-        return wiki_data_json(text, '해당 단어가 존재하지 않습니다.','해당 단어가 존재하지 않습니다.','해당 단어가 존재하지 않습니다.')
+        return wiki_data_json(text, '해당 단어가 존재하지 않습니다.', '해당 단어가 존재하지 않습니다.', '해당 단어가 존재하지 않습니다.')
 
 async def handle_request(request):
     data = await request.json()
