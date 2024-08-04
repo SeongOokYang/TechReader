@@ -133,6 +133,7 @@ def main():
     app.router.add_post('/',handle_request)
     app.router.add_post('/get_text', get_web_text)
     web.run_app(app, host=ADDRESS, port=PORT)
+    
 
 if __name__ == "__main__":
 
