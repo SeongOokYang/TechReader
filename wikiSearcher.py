@@ -8,7 +8,6 @@ import re
 from pecab import PeCab
 import requests
 from bs4 import BeautifulSoup
-import homonym_handling.homonym_handler as homonym_handler
 
 WIKI = wikipediaapi.Wikipedia('201803851@o.cnu.ac.kr','ko')
 ADDRESS = '127.0.0.1'
@@ -26,55 +25,11 @@ def related2str(related):
 
     return str(result)
 
-def check_homonym(wikiReader):
-    for category in list(wikiReader.categories.keys()):
-            if('동음이의' in category or '동명이인' in category):
-                return True
-    return False
-
-def handle_homonym(fullText, links, usePara):
-    linkArr = []
-    fullText = re.sub("\n+", "\n", fullText)
-    texts = fullText.split('\n')[1:]
-    textArr = []
-    linkStrs = related2str(links)
-    linkStrs = re.sub(r'^\[|\]$',"",linkStrs)
-    linkStrs = re.sub(r"'","", linkStrs)
-    links = linkStrs.split(",")
-    for link in links:
-        if('동음이의' in link or '동명이인' in link):
-            continue
-        linkArr.append(link)
-
-    # for link in linkArr:
-    #     for text in texts:
-    #         if(link in text):
-    #             textArr.append(text)
-
-    result_Reader = homonym_handler.checkSimilarity(texts, usePara)
-    # similarArr = checkSimilarity(linkArr, usePara)    
-    # max_index = similarArr.index(max(similarArr))
-    # result_Reader = WIKI.page(links[max_index])
-
-    return result_Reader
-    
-
-def re_search(wikiReader, usePara):
-    '''
-    동음이의어 페이지로 넘어갔을 때, 동음이의어들의 정의가 존재하는지 확인하는 함수
-    '''
-    links = wikiReader.links
-    text = wikiReader.text
-    result_page = WIKI.page(handle_homonym(text, links, usePara))
-    return result_page
-
 def search_wiki(data):
     text = data['text']
     usePara = data['usePara']
     wikiReader = WIKI.page(text)
     if(wikiReader.exists()):
-        if(check_homonym(wikiReader)):
-            wikiReader = re_search(wikiReader, usePara)
         print(wikiReader.text)
         word = text
         summary = wikiReader.summary
