@@ -35,8 +35,9 @@ def check_homonym(wikiReader):
 def handle_homonym(links, original_text):
     best_match = None
     highest_similarity = 0
-    vectorizer = TfidfVectorizer().fit_transform([original_text])
-    original_vector = vectorizer.toarray()[0]
+    vectorizer = TfidfVectorizer()
+    origin_transform = vectorizer.fit_transform([original_text])
+    original_vector = origin_transform.toarray()[0]
 
     for link in links:
         if '동음이의' in link or '동명이인' in link:
