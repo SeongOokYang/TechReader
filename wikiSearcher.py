@@ -34,21 +34,24 @@ def check_homonym(wikiReader):
 
 def handle_homonym(fullText, links, usePara):
     linkArr = []
-    texts = fullText.split('\n')
+    fullText = re.sub("\n+", "\n", fullText)
+    texts = fullText.split('\n')[1:]
     textArr = []
     linkStrs = related2str(links)
     linkStrs = re.sub(r'^\[|\]$',"",linkStrs)
+    linkStrs = re.sub(r"'","", linkStrs)
     links = linkStrs.split(",")
     for link in links:
         if('동음이의' in link or '동명이인' in link):
             continue
         linkArr.append(link)
 
-    for link in linkArr:
-        for text in texts:
-            if link in text:
-                textArr.append(text)
-    result_Reader = homonym_handler.checkSimilarity(textArr, usePara)
+    # for link in linkArr:
+    #     for text in texts:
+    #         if(link in text):
+    #             textArr.append(text)
+
+    result_Reader = homonym_handler.checkSimilarity(texts, usePara)
     # similarArr = checkSimilarity(linkArr, usePara)    
     # max_index = similarArr.index(max(similarArr))
     # result_Reader = WIKI.page(links[max_index])
