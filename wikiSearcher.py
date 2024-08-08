@@ -11,10 +11,13 @@ from sklearn.metrics.pairwise import cosine_similarity
 import requests
 from bs4 import BeautifulSoup
 import threading
+from konlpy.tag import Okt
 
 WIKI = wikipediaapi.Wikipedia('201803851@o.cnu.ac.kr','ko')
 ADDRESS = '127.0.0.1'
 PORT = 8888
+
+okt = Okt()
 
 def wiki_data_json(word, summary, explain, related):
     result = {'word': word, 'summary': summary, 'explain' : explain, 'related': related}
@@ -52,11 +55,25 @@ def clean_text(text):
 
     return text
 
+def pre_text(text): #출처 : https://icedhotchoco.tistory.com/entry/DAY-64 // 뉴스 토픽 분류 - KoNLpy, 어간 추출, 불용어 제거, tfidfVectorizer
+    word_list = []
+    okt_pos = okt.pos(text, norm=True, stem=True)
+
+    for word in okt_pos:
+        if word[1] not in ['Josa', 'Eomi', 'Punctuation']:
+            word_list.append(word[0])
+    
+    result = " ".join(word_list)
+
+    return result
+
 def handle_homonym(links, original_text):
     best_match = None
     highest_similarity = 0
     vectorizer = TfidfVectorizer()
-    origin_transform = vectorizer.fit_transform(original_text)
+    original_text = ' '.join(original_text)
+    original_text = pre_text(original_text)
+    origin_transform = vectorizer.fit_transform([original_text])
     original_vector = origin_transform.toarray()[0]
     link_unhomonym = []
     threadArr = []
@@ -64,6 +81,7 @@ def handle_homonym(links, original_text):
     def thread_function(link, original_vector, id, vectorizer):
         linkReader = WIKI.page(link)
         link_text = linkReader.text
+        link_text = pre_text(link_text)
         link_vector = vectorizer.transform([link_text]).toarray()[0]
         similarity = cosine_similarity([original_vector], [link_vector])[0][0]
         print(linkReader.title+"||"+str(similarity))
