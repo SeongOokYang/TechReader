@@ -69,15 +69,15 @@ function buttonClick() { // 버튼 클릭시, chrome플러그인의 service_work
     chrome.runtime.sendMessage({request : requestData, action:"wikiSearch"},function (response) {
         if(response !== "error occurred") {
             console.log(response);
-            requestOpenSideBar();
+            // requestOpenSideBar();
             deleteButton();
         }
     });
 }
 
-function requestOpenSideBar() {
-    chrome.runtime.sendMessage({request : selectText, action:"openSideBar"})
-}
+// function requestOpenSideBar() {
+//     chrome.runtime.sendMessage({request : selectText, action:"openSideBar"})
+// }
 
 function deleteButton() { //버튼을 없애는 함수
     $('#pluginButton').remove();
