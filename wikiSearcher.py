@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import re
 from pecab import PeCab
+from concurrent.futures import ThreadPoolExecutor
 from sklearn.feature_extraction.text import TfidfVectorizer #need 'pip install scikit-learn'
 from sklearn.metrics.pairwise import cosine_similarity
 import requests
@@ -23,13 +24,43 @@ def wiki_data_json(word, summary, explain, related):
     result = {'word': word, 'summary': summary, 'explain' : explain, 'related': related}
     return json.dumps(result, ensure_ascii=False)
 
-def related2str(related):
-    result = []
-    for link in related.values():
-        link, _ = str(link).split(" (id:")
-        result.append(link)
+def fetch_page_text(link):
+    page = WIKI.page(link)
+    if page.exists():
+        return (link, page.text)
+    return (link, "")
 
-    return str(result)
+def get_top_related_words(related, text, top_n=5):
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        future_to_link = {executor.submit(fetch_page_text, link): link for link in related.keys()}
+        related_texts = []
+        related_titles = []
+
+        for future in future_to_link:
+            link, page_text = future.result()
+            if page_text:  # 빈 페이지 텍스트는 제외
+                related_texts.append(page_text)
+                related_titles.append(link)
+
+    if not related_texts:
+        return []
+
+    # TF-IDF Vectorizer 적용
+    vectorizer = TfidfVectorizer()
+    vectors = vectorizer.fit_transform([text] + related_texts)
+    
+    # 코사인 유사도 계산 (첫 번째 벡터는 검색어에 해당)
+    cosine_similarities = cosine_similarity(vectors[0:1], vectors[1:]).flatten()
+
+    # 유사도가 높은 상위 n개 관련 단어 선택
+    top_indices = cosine_similarities.argsort()[-top_n:][::-1]
+    top_related = [related_titles[i] for i in top_indices]
+
+    return top_related
+
+def related2str(related, original_text):
+    top_related = get_top_related_words(related, original_text)
+    return str(top_related)
 
 def check_homonym(wikiReader):
     for category in list(wikiReader.categories.keys()):
@@ -137,7 +168,7 @@ def search_wiki(data):
         summary = clean_text(wikiReader.summary)
         explain = clean_text(wikiReader.text)
         related = wikiReader.links
-        related = related2str(related)
+        related = related2str(related, wikiReader.text)
         result = wiki_data_json(word, summary, explain, related)
         return result
     else:
