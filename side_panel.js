@@ -4,15 +4,41 @@ let explainDiv = document.getElementById('explain');
 let relatedList = document.getElementById('relatedList');
 let historyList = document.getElementById('historyList');
 
-function relateLi(relatedStr) {
-    let relatedVals = relatedStr.replace(/^\[|\]$/g,'');
-    relatedVals = relatedVals.split(',')
-    for (let val of relatedVals) {
-        let li = document.createElement('LI');
-        let textNode = document.createTextNode(val);
-        li.appendChild(textNode);
-        relatedList.appendChild(li);
+function displayExplain(explainVal) {
+    let strVals = explainVal.replace(/^\[|\]$/g,''); //문장의 처음과 끝의 []를 제거하는 정규식
+    strVals = strVals.split('|-|');
+    strVals.shift();
+    for (let val of strVals) {
+        console.log(val)
+        let vals = val.split('|');
+        sectionDept = vals[0]
+        sectionTitle = vals[1]
+        sectionText = vals[2]
+        console.log(sectionDept)
+        let header = document.createElement('H'+sectionDept);
+        let titleText = document.createTextNode(sectionTitle);
+        header.appendChild(titleText);
+        let textP = document.createElement('P');
+        let textText = document.createTextNode(sectionText);
+        textP.appendChild(textText);
+        explainDiv.appendChild(header);
+        explainDiv.appendChild(textP);
     }
+}
+
+function displayRelated(relatedVal) {
+    let vals = relatedVal.split('|');
+    sectionText = vals[2];
+    section_Texts = sectionText.split("\n");
+    for(text of section_Texts) {
+        if(text.trim() !== ''){
+            let li = document.createElement('LI');
+            let textNode = document.createTextNode(text);
+            li.appendChild(textNode);
+            relatedList.appendChild(li);
+        }
+    }
+    
 }
 
 function getHistory() {
@@ -26,10 +52,11 @@ function putDataInDiv(json_data) {
     data = JSON.parse(json_data);
     wordDiv.innerText = data.word;
     summaryDiv.innerText = data.summary;
-    explainDiv.innerText = data.explain;
+    let explainStr = data.explain;
+    displayExplain(explainStr);
     let relatedStr = data.related;
     relatedList.innerHTML = ''; // Clear the previous related list
-    relateLi(relatedStr);
+    displayRelated(relatedStr);
     getHistory();
 }
 

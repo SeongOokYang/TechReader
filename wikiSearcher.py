@@ -24,43 +24,60 @@ def wiki_data_json(word, summary, explain, related):
     result = {'word': word, 'summary': summary, 'explain' : explain, 'related': related}
     return json.dumps(result, ensure_ascii=False)
 
-def fetch_page_text(link):
-    page = WIKI.page(link)
-    if page.exists():
-        return (link, page.text)
-    return (link, "")
+# def fetch_page_text(link):
+#     page = WIKI.page(link)
+#     if page.exists():
+#         return (link, page.text)
+#     return (link, "")
 
-def get_top_related_words(related, text, top_n=5):
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        future_to_link = {executor.submit(fetch_page_text, link): link for link in related.keys()}
-        related_texts = []
-        related_titles = []
+# def get_top_related_words(related, text, top_n=5):
+#     with ThreadPoolExecutor(max_workers=10) as executor:
+#         future_to_link = {executor.submit(fetch_page_text, link): link for link in related.keys()}
+#         related_texts = []
+#         related_titles = []
 
-        for future in future_to_link:
-            link, page_text = future.result()
-            if page_text:  # 빈 페이지 텍스트는 제외
-                related_texts.append(page_text)
-                related_titles.append(link)
+#         for future in future_to_link:
+#             link, page_text = future.result()
+#             if page_text:  # 빈 페이지 텍스트는 제외
+#                 related_texts.append(page_text)
+#                 related_titles.append(link)
 
-    if not related_texts:
-        return []
+#     if not related_texts:
+#         return []
 
-    # TF-IDF Vectorizer 적용
-    vectorizer = TfidfVectorizer()
-    vectors = vectorizer.fit_transform([text] + related_texts)
+    # # TF-IDF Vectorizer 적용
+    # vectorizer = TfidfVectorizer()
+    # vectors = vectorizer.fit_transform([text] + related_texts)
     
-    # 코사인 유사도 계산 (첫 번째 벡터는 검색어에 해당)
-    cosine_similarities = cosine_similarity(vectors[0:1], vectors[1:]).flatten()
+    # # 코사인 유사도 계산 (첫 번째 벡터는 검색어에 해당)
+    # cosine_similarities = cosine_similarity(vectors[0:1], vectors[1:]).flatten()
 
-    # 유사도가 높은 상위 n개 관련 단어 선택
-    top_indices = cosine_similarities.argsort()[-top_n:][::-1]
-    top_related = [related_titles[i] for i in top_indices]
+    # # 유사도가 높은 상위 n개 관련 단어 선택
+    # top_indices = cosine_similarities.argsort()[-top_n:][::-1]
+    # top_related = [related_titles[i] for i in top_indices]
 
-    return top_related
+    # return top_related
 
-def related2str(related, original_text):
-    top_related = get_top_related_words(related, original_text)
-    return str(top_related)
+def get_sections(sections, dept = 2):
+    sections_str = ''
+    related = ''
+    for section in sections:
+        sectionStr = str(dept) + "|" + section.title + "|" + section.text
+        if(section.title == "같이 보기"):
+            related = sectionStr
+        else:
+            # sections_str2,_ = get_sections(section.sections, dept = dept+1)
+            # sections_str = sectionStr+','+sections_str2
+            sections_str = sections_str+'|-|'+sectionStr
+
+    
+    return sections_str, related
+
+def get_text(wikiReader):
+    # top_related = get_top_related_words(related, original_text)
+    sections = wikiReader.sections
+    sectionArr, related = get_sections(sections)
+    return sectionArr, related
 
 def check_homonym(wikiReader):
     for category in list(wikiReader.categories.keys()):
@@ -69,22 +86,22 @@ def check_homonym(wikiReader):
     return False
 
     
-def clean_text(text):
-    # LaTeX 형식의 수식 및 기호 제거
-    text = re.sub(r'\{\{[^{}]+\}\}', '', text)  # 중괄호 내부의 LaTeX 수식 제거
-    text = re.sub(r'\{\\displaystyle [^{}]+\}', '', text)  # \displaystyle 제거
-    text = re.sub(r'\{\\mathcal [^{}]+\}', '', text)  # \mathcal 제거
-    text = re.sub(r'\\displaystyle', '', text)  # \displaystyle 제거
-    text = re.sub(r'\\mathcal', '', text)  # \mathcal 제거
-    text = re.sub(r'\$[^\$]*\$', '', text)  # $...$ 형식의 LaTeX 수식 제거
+# def clean_text(text):
+#     # LaTeX 형식의 수식 및 기호 제거
+#     text = re.sub(r'\{\{[^{}]+\}\}', '', text)  # 중괄호 내부의 LaTeX 수식 제거
+#     text = re.sub(r'\{\\displaystyle [^{}]+\}', '', text)  # \displaystyle 제거
+#     text = re.sub(r'\{\\mathcal [^{}]+\}', '', text)  # \mathcal 제거
+#     text = re.sub(r'\\displaystyle', '', text)  # \displaystyle 제거
+#     text = re.sub(r'\\mathcal', '', text)  # \mathcal 제거
+#     text = re.sub(r'\$[^\$]*\$', '', text)  # $...$ 형식의 LaTeX 수식 제거
 
-    # 연속된 공백을 하나의 공백으로 축소
-    text = re.sub(r'\s+', ' ', text)
-    text = re.sub(r'\{\{[^\}]+\}\}', '', text)  # 중괄호 내부 내용 제거
-    text = re.sub(r'\[\[[^\]]+\]\]', '', text)  # 대괄호 내부 내용 제거
-    text = re.sub(r'{[^{}]+}', '', text)  # 중괄호 내부 내용 제거
+#     # 연속된 공백을 하나의 공백으로 축소
+#     text = re.sub(r'\s+', ' ', text)
+#     text = re.sub(r'\{\{[^\}]+\}\}', '', text)  # 중괄호 내부 내용 제거
+#     text = re.sub(r'\[\[[^\]]+\]\]', '', text)  # 대괄호 내부 내용 제거
+#     text = re.sub(r'{[^{}]+}', '', text)  # 중괄호 내부 내용 제거
 
-    return text
+#     return text
 
 def pre_text(text): #출처 : https://icedhotchoco.tistory.com/entry/DAY-64 // 뉴스 토픽 분류 - KoNLpy, 어간 추출, 불용어 제거, tfidfVectorizer
     word_list = []
@@ -165,10 +182,8 @@ def search_wiki(data):
             wikiReader = re_search(wikiReader, usePara)
         print(wikiReader.text)
         word = text
-        summary = clean_text(wikiReader.summary)
-        explain = clean_text(wikiReader.text)
-        related = wikiReader.links
-        related = related2str(related, wikiReader.text)
+        summary = wikiReader.summary
+        explain, related = get_text(wikiReader)
         result = wiki_data_json(word, summary, explain, related)
         return result
     else:
