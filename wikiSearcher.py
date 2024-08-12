@@ -71,7 +71,7 @@ def get_sections(sections, dept = 2):
             sections_str = sections_str+'|-|'+sectionStr
 
     
-    return clean_text(sections_str), related
+    return sections_str, related
 
 def get_text(wikiReader):
     # top_related = get_top_related_words(related, original_text)
@@ -86,22 +86,22 @@ def check_homonym(wikiReader):
     return False
 
     
-def clean_text(text):
-    # LaTeX 형식의 수식 및 기호 제거
-    text = re.sub(r'\{\{[^{}]+\}\}', '', text)  # 중괄호 내부의 LaTeX 수식 제거
-    text = re.sub(r'\{\\displaystyle [^{}]+\}', '', text)  # \displaystyle 제거
-    text = re.sub(r'\{\\mathcal [^{}]+\}', '', text)  # \mathcal 제거
-    text = re.sub(r'\\displaystyle', '', text)  # \displaystyle 제거
-    text = re.sub(r'\\mathcal', '', text)  # \mathcal 제거
-    text = re.sub(r'\$[^\$]*\$', '', text)  # $...$ 형식의 LaTeX 수식 제거
+# def clean_text(text):
+#     # LaTeX 형식의 수식 및 기호 제거
+#     text = re.sub(r'\{\{[^{}]+\}\}', '', text)  # 중괄호 내부의 LaTeX 수식 제거
+#     text = re.sub(r'\{\\displaystyle [^{}]+\}', '', text)  # \displaystyle 제거
+#     text = re.sub(r'\{\\mathcal [^{}]+\}', '', text)  # \mathcal 제거
+#     text = re.sub(r'\\displaystyle', '', text)  # \displaystyle 제거
+#     text = re.sub(r'\\mathcal', '', text)  # \mathcal 제거
+#     text = re.sub(r'\$[^\$]*\$', '', text)  # $...$ 형식의 LaTeX 수식 제거
 
-    # 연속된 공백을 하나의 공백으로 축소
-    text = re.sub(r'\s+', ' ', text)
-    text = re.sub(r'\{\{[^\}]+\}\}', '', text)  # 중괄호 내부 내용 제거
-    text = re.sub(r'\[\[[^\]]+\]\]', '', text)  # 대괄호 내부 내용 제거
-    text = re.sub(r'{[^{}]+}', '', text)  # 중괄호 내부 내용 제거
+#     # 연속된 공백을 하나의 공백으로 축소
+#     text = re.sub(r'\s+', ' ', text)
+#     text = re.sub(r'\{\{[^\}]+\}\}', '', text)  # 중괄호 내부 내용 제거
+#     text = re.sub(r'\[\[[^\]]+\]\]', '', text)  # 대괄호 내부 내용 제거
+#     text = re.sub(r'{[^{}]+}', '', text)  # 중괄호 내부 내용 제거
 
-    return text
+#     return text
 
 def pre_text(text): #출처 : https://icedhotchoco.tistory.com/entry/DAY-64 // 뉴스 토픽 분류 - KoNLpy, 어간 추출, 불용어 제거, tfidfVectorizer
     word_list = []
@@ -182,7 +182,7 @@ def search_wiki(data):
             wikiReader = re_search(wikiReader, usePara)
         print(wikiReader.text)
         word = text
-        summary = clean_text(wikiReader.summary)
+        summary = wikiReader.summary
         explain, related = get_text(wikiReader)
         result = wiki_data_json(word, summary, explain, related)
         return result
