@@ -3,14 +3,16 @@
 <head>
     <title>TechReader SideBar</title>
     <link rel="stylesheet" href="side_panel.css">
+    <script src="scripts/jquery-3.7.1.min.js"></script>
 </head>
 <body>
+    <img src="image/loading_screen.gif" style="display:none; text-align: center;">
     <h1>Word</h1>
-    <div id="word">wait for a moment.......</div>
+    <div id="word"></div>
     <h1>Summary</h1>
-    <div id="summary" class="dataDiv">wait for a moment.......</div>
+    <div id="summary" class="dataDiv"></div>
     <h1>Explain</h1>
-    <div id="explain" class="dataDiv">wait for a moment.......</div>
+    <div id="explain" class="dataDiv"></div>
     <h1>Related Words</h1>
     <div id="related" class="dataDiv">
         <ul id="relatedList"></ul>
@@ -20,5 +22,6 @@
         <ul id="historyList"></ul>
     </div>
     <script src="side_panel.js"></script>
+
 </body>
 </html>

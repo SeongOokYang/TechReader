@@ -59,25 +59,27 @@ def wiki_data_json(word, summary, explain, related):
     # return top_related
 
 def get_sections(sections, dept = 2):
-    sections_str = ''
+    sections_str = []
     related = ''
     for section in sections:
-        sectionStr = str(dept) + "|" + section.title + "|" + section.text
-        if(section.title == "같이 보기"):
-            related = sectionStr
-        else:
-            # sections_str2,_ = get_sections(section.sections, dept = dept+1)
-            # sections_str = sectionStr+','+sections_str2
-            sections_str = sections_str+'|-|'+sectionStr
-
-    
+        if(section != ''):
+            sectionStr = str(dept) + "|" + section.title + "|" + section.text
+            if(section.title == "같이 보기"):
+                related = sectionStr
+            else:
+                sections_str.append(sectionStr)
+                sections_str2,_ = get_sections(section.sections, dept = dept+1)
+                if sections_str2:
+                    sections_str = sections_str + sections_str2
+        
     return sections_str, related
 
 def get_text(wikiReader):
     # top_related = get_top_related_words(related, original_text)
     sections = wikiReader.sections
     sectionArr, related = get_sections(sections)
-    return sectionArr, related
+    str_section = '|-|'.join(sectionArr)
+    return str_section, related
 
 def check_homonym(wikiReader):
     for category in list(wikiReader.categories.keys()):
@@ -144,16 +146,6 @@ def handle_homonym(links, original_text):
     similarities = [0.0]*len(link_unhomonym)
     idNum = 0    
     for link in link_unhomonym:    
-    #     linkReader = WIKI.page(link)
-    #     if linkReader.exists():
-    #         link_text = linkReader.text
-    #         link_vector = vectorizer.transform([link_text]).toarray()[0]
-    #         similarity = cosine_similarity([original_vector], [link_vector])[0][0]
-    #         print(linkReader.title+"||"+str(similarity))
-
-    #         if similarity > highest_similarity:
-    #             highest_similarity = similarity
-    #             best_match = link
         thread = threading.Thread(target = thread_function, args = (link, original_vector, idNum, vectorizer))
         thread.start()
         threadArr.append(thread)
@@ -162,7 +154,6 @@ def handle_homonym(links, original_text):
     for thread in threadArr:
         thread.join()
 
-    # if best_match:
     best_match = link_unhomonym[similarities.index(max(similarities))]
     return best_match
 

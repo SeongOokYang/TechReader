@@ -7,16 +7,14 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     let message = { request: request.request };
     if (request.action === "wikiSearch") {
         if(!isSidePanelOpen) {
+            console.log(10);
             chrome.sidePanel.open({ tabId: sender.tab.id });
             isSidePanelOpen = true;
             postData(url, message).then((response) => {
                 if (typeof(response) === 'string') {
-                    sendResponse(response);
                     searchOutcome = response;
                     addToSearchHistory(request.request);
-                    if (isSidePanelOpen) {
-                        chrome.runtime.sendMessage({ request: searchOutcome, action: "reFill" });
-                    }
+                    chrome.runtime.sendMessage({ request: searchOutcome, action: "fill" });
                 } else {
                     sendResponse("error occurred in service-worker");
                 }
@@ -24,35 +22,25 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 sendResponse("error occurred");
             });
         }else {
+            console.log(20);
+            chrome.runtime.sendMessage({action: "loading"})
             postData(url, message).then((response) => {
                 if (typeof(response) === 'string') {
                     sendResponse(response);
                     searchOutcome = response;
                     addToSearchHistory(request.request);
-                    if (isSidePanelOpen) {
-                        chrome.runtime.sendMessage({ request: searchOutcome, action: "reFill" });
-                    }
+                    chrome.runtime.sendMessage({ request: searchOutcome, action: "fill" });
                 } else {
                     sendResponse("error occurred in service-worker");
                 }
             }).catch((error) => {
                 sendResponse("error occurred");
             });
-            chrome.runtime.sendMessage({ request: searchOutcome, action: "reFill" });
         }
     } else if(request.action === "get_text") {
         postData('http://127.0.0.1:8888/get_text', message).then((response) => {
             sendResponse(response)
-        })
-    // }else if (request.action === "openSideBar") {
-    //     chrome.sidePanel.open({ tabId: sender.tab.id });
-    //     if (!isSidePanelOpen) {
-    //         isSidePanelOpen = true;
-    //     } else {
-    //         chrome.runtime.sendMessage({ request: searchOutcome, action: "reFill" });
-    //     }
-    } else if (request.action === "sideBarText") {
-        sendResponse(searchOutcome);
+        });
     } else if (request.action === "closeSideBar") {
         isSidePanelOpen = false;
     } else if (request.action === "getHistory") {

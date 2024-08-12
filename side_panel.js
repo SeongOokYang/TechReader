@@ -1,17 +1,22 @@
+displaySwitch();
+
 let wordDiv = document.getElementById('word');
 let summaryDiv = document.getElementById('summary');
 let explainDiv = document.getElementById('explain');
 let relatedList = document.getElementById('relatedList');
 let historyList = document.getElementById('historyList');
 
+function displaySwitch() {
+    $("body").children().toggle();
+}
+
 function displayExplain(explainVal) {
-    let strVals = explainVal.replace(/^\[|\]$/g,''); //문장의 처음과 끝의 []를 제거하는 정규식
-    strVals = strVals.split('|-|');
-    strVals.shift();
+    let strVals = explainVal.split('|-|');
+
     for (let val of strVals) {
         console.log(val)
         let vals = val.split('|');
-        sectionDept = vals[0]
+        sectionDept = Number(vals[0])
         sectionTitle = vals[1]
         sectionText = vals[2]
         console.log(sectionDept)
@@ -49,6 +54,7 @@ function getHistory() {
 }
 
 function putDataInDiv(json_data) {
+    console.log(json_data);
     data = JSON.parse(json_data);
     wordDiv.innerText = data.word;
     summaryDiv.innerText = data.summary;
@@ -58,6 +64,7 @@ function putDataInDiv(json_data) {
     relatedList.innerHTML = ''; // Clear the previous related list
     displayRelated(relatedStr);
     getHistory();
+    displaySwitch();
 }
 
 function displayHistory(history) {
@@ -71,11 +78,7 @@ function displayHistory(history) {
         link.innerText = word;
         link.onclick = function (event) {
             event.preventDefault(); // Prevent the default link behavior
-            chrome.runtime.sendMessage({ request: hist, action: "wikiSearch" }, function (response) {
-                if (response !== "error occurred") {
-                    putDataInDiv(response); // Update the side panel with the new data
-                }
-            });
+            chrome.runtime.sendMessage({ request: hist, action: "wikiSearch" });
         };
         li.appendChild(link);
         historyList.appendChild(li);
@@ -89,15 +92,13 @@ function clearDataDiv() {
     relatedList.replaceChildren();
 }
 
-chrome.runtime.sendMessage({action:"sideBarText"}, (response) => {
-    putDataInDiv(response);
-});
-
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-    let message = request.request;
-    if(request.action === "reFill") {
+    if(request.action === "fill") {
+        let message = request.request;
         clearDataDiv();
         putDataInDiv(message);
+    }else if(request.action === "loading") {
+        displaySwitch()
     }
     return true;
 });
