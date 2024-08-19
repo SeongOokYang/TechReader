@@ -29,8 +29,9 @@ function changeButton() {
     $("#pluginButton").on("mousedown", buttonClick);
 }
 
-function findUsePara(textNodes, text) {
+function findUsePara(selectNode,textNodes, text) {
     let usePara = [];
+    usePara.push(selectNode.trim());
     let allTexts = textNodes.split('\n');
     console.log(allTexts);
     allTexts.forEach(function(textValue) {
@@ -42,23 +43,27 @@ function findUsePara(textNodes, text) {
 }
 
 //chatGPT 생성코드
+
 function getTextNode(event) {
     let textNodes = "";
     let url = window.location.href;
     let selectObj = window.getSelection();
+    let selectNode = selectObj.anchorNode.nodeValue;
     selectText = selectObj.toString().trim();
+    
+    console.log(selectNode);
     if(selectText !== '' && selectText !== " " && selectText !== "\n") {
         makeButton(selectObj);
         chrome.runtime.sendMessage({request : url, action : 'get_text'}, function(response) {
             textNodes = response;
-            getUserSelectText(textNodes);
+            getUserSelectText(selectNode ,textNodes);
         });
     }
 }
 //
 
-function getUserSelectText(textNodes) { // 플러그인 버튼 생성 함수
-    textUsePara = findUsePara(textNodes, selectText);
+function getUserSelectText(selectNode,textNodes) { // 플러그인 버튼 생성 함수
+    textUsePara = findUsePara(selectNode, textNodes, selectText);
     changeButton();
 }
 

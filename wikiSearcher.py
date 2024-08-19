@@ -167,6 +167,7 @@ def re_search(wikiReader, original_text):
 def search_wiki(data):
     text = data['text']
     usePara = data['usePara']
+    print(usePara[0])
     wikiReader = WIKI.page(text)
     if(wikiReader.exists()):
         if check_homonym(wikiReader):
