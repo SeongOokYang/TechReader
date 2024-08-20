@@ -4,6 +4,13 @@ let searchHistory = [];
 const url = 'http://127.0.0.1:8888/'
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+    if(request.action === "closeSideBar") {
+        isSidePanelOpen = request.request;
+        sendResponse(isSidePanelOpen);
+    }
+});
+
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     let message = { request: request.request };
     if (request.action === "wikiSearch") {
         if(!isSidePanelOpen) {
@@ -23,7 +30,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             });
         }else {
             console.log(20);
-            chrome.runtime.sendMessage({action: "loading"})
+            chrome.sidePanel.open({ tabId: sender.tab.id });
+            chrome.runtime.sendMessage({action: "loading"});
             postData(url, message).then((response) => {
                 if (typeof(response) === 'string') {
                     sendResponse(response);
@@ -41,11 +49,22 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         postData('http://127.0.0.1:8888/get_text', message).then((response) => {
             sendResponse(response)
         });
-    } else if (request.action === "closeSideBar") {
-        isSidePanelOpen = false;
     } else if (request.action === "getHistory") {
         console.log("Sending history:", searchHistory);  // 로그 추가
         sendResponse(searchHistory);
+    } else if(request.action === "wikiSearchPanel") {
+        chrome.runtime.sendMessage({action: "loading"});
+        postData(url, message).then((response) => {
+            if (typeof(response) === 'string') {
+                searchOutcome = response;
+                addToSearchHistory(request.request);
+                chrome.runtime.sendMessage({ request: searchOutcome, action: "fill" });
+            } else {
+                sendResponse("error occurred in service-worker");
+            }
+        }).catch((error) => {
+            sendResponse("error occurred");
+        });
     }
 
     return true;
@@ -62,35 +81,19 @@ function addToSearchHistory(word) {
 }
 
 async function postData(url = "", data = {}) {
-    const controller = new AbortController();
-    const signal = controller.signal;
-
-    const timeoutID = setTimeout(() => {
-        controller.abort();
-    }, 180000);
-
-    try {
-        const response = await fetch(url, {
-            method: "POST",
-            mode: "cors",
-            cache: "no-cache",
-            credentials: "same-origin",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            redirect: "follow",
-            referrerPolicy: "no-referrer",
-            body: JSON.stringify(data),
-            signal
-        });
-        
-        clearTimeout(timeoutID)
-        return response.text();
-    } catch(error) {
-        if(error.name === 'AbortError') {
-            throw new Error('Request Time Out');
-        }
-        throw error;
-    }
+    const response = await fetch(url, {
+        method: "POST",
+        mode: "cors",
+        cache: "no-cache",
+        credentials: "same-origin",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        redirect: "follow",
+        referrerPolicy: "no-referrer",
+        body: JSON.stringify(data),
+    });
+    
+    return response.text();
     
 }

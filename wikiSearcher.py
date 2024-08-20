@@ -60,7 +60,7 @@ def wiki_data_json(word, summary, explain, related):
 
 def get_sections(sections, dept = 2):
     sections_str = []
-    related = ''
+    related = 'none'
     for section in sections:
         if(section != ''):
             sectionStr = str(dept) + "|" + section.title + "|" + section.text
