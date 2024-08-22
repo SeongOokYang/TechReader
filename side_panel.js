@@ -105,9 +105,10 @@ function displayExplain(explainVal) {
 }
 
 function displayRelated(relatedVal) {
-    if(relatedVal != 'none') {
+    if(relatedVal != 'none' && relatedVal == '해당 단어가 존재하지 않습니다.') {
         let vals = relatedVal.split('|');
         sectionText = vals[2];
+        console.log(vals)
         section_Texts = sectionText.split("\n");
         for(text of section_Texts) {
             if(text.trim() !== ''){
@@ -132,7 +133,7 @@ function displayHistory(history) {
         link.innerText = word;
         link.onclick = function (event) {
             event.preventDefault(); // Prevent the default link behavior
-            chrome.runtime.sendMessage({ request: hist, action: "wikiSearch" });
+            chrome.runtime.sendMessage({ request: hist, action: "wikiSearchPanel" });
         };
         li.appendChild(link);
         historyList.appendChild(li);

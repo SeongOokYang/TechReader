@@ -124,7 +124,7 @@ def handle_homonym(links, original_text):
     best_match = None
     # highest_similarity = 0
     # vectorizer = TfidfVectorizer()
-    # original_text = ' '.join(original_text)
+    original_text = ' '.join(original_text)
     # original_text = pre_text(original_text)
     # origin_transform = vectorizer.fit_transform([original_text])
     # original_vector = origin_transform.toarray()[0]
@@ -138,8 +138,12 @@ def handle_homonym(links, original_text):
         # link_text = pre_text(link_text)
         # link_vector = vectorizer.transform([link_text]).toarray()[0]
         # similarity = cosine_similarity([original_vector], [link_vector])[0][0]
-        link_summary = linkReader.summary + "\n"
-        link_summary = link_summary.split('\n')[0]
+        
+        # link_summary = linkReader.summary + "\n"
+        # link_summary = link_summary.split('\n')[0]
+        # link_summary = link_summary + '.'
+        # link_summary = link_summary.split('.')[0]
+        link_summary = linkReader.summary
         similarity = homonym_handling(model, original_text, link_summary)
 
         print(linkReader.title+"||"+str(similarity))
@@ -174,9 +178,11 @@ def re_search(wikiReader, original_text):
 
 
 def search_wiki(data):
-    text = data['text']
+    print(data)
+    text = data['text'].lower()
     # usePara = data['usePara']
-    usePara = data['usePara'][0]
+    usePara = data['usePara']
+    print(usePara)
     wikiReader = WIKI.page(text)
     if(wikiReader.exists()):
         if check_homonym(wikiReader):
@@ -193,7 +199,6 @@ def search_wiki(data):
 async def handle_request(request):
     data = await request.json()
     data = data.get('request')
-    print(data)
     return web.Response(text = search_wiki(data))
 
 def crawl_text(url):
