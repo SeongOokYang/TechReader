@@ -13,12 +13,15 @@ import requests
 from bs4 import BeautifulSoup
 import threading
 from konlpy.tag import Okt
+from sentence_transformers import SentenceTransformer
+from homonym_handler.homonym_handler import homonym_handling
 
 WIKI = wikipediaapi.Wikipedia('201803851@o.cnu.ac.kr','ko')
 ADDRESS = '127.0.0.1'
 PORT = 8888
 
 okt = Okt()
+model = SentenceTransformer('homonym_handler/model')
 
 def wiki_data_json(word, summary, explain, related):
     result = {'word': word, 'summary': summary, 'explain' : explain, 'related': related}
@@ -119,21 +122,26 @@ def pre_text(text): #출처 : https://icedhotchoco.tistory.com/entry/DAY-64 // �
 
 def handle_homonym(links, original_text):
     best_match = None
-    highest_similarity = 0
-    vectorizer = TfidfVectorizer()
-    original_text = ' '.join(original_text)
-    original_text = pre_text(original_text)
-    origin_transform = vectorizer.fit_transform([original_text])
-    original_vector = origin_transform.toarray()[0]
+    # highest_similarity = 0
+    # vectorizer = TfidfVectorizer()
+    # original_text = ' '.join(original_text)
+    # original_text = pre_text(original_text)
+    # origin_transform = vectorizer.fit_transform([original_text])
+    # original_vector = origin_transform.toarray()[0]
     link_unhomonym = []
     threadArr = []
     
-    def thread_function(link, original_vector, id, vectorizer):
+    # def thread_function(link, original_vector, id, vectorizer):
+    def thread_function(link, original_text, id, model):
         linkReader = WIKI.page(link)
-        link_text = linkReader.text
-        link_text = pre_text(link_text)
-        link_vector = vectorizer.transform([link_text]).toarray()[0]
-        similarity = cosine_similarity([original_vector], [link_vector])[0][0]
+        # link_text = linkReader.text
+        # link_text = pre_text(link_text)
+        # link_vector = vectorizer.transform([link_text]).toarray()[0]
+        # similarity = cosine_similarity([original_vector], [link_vector])[0][0]
+        link_summary = linkReader.summary + "\n"
+        link_summary = link_summary.split('\n')[0]
+        similarity = homonym_handling(model, original_text, link_summary)
+
         print(linkReader.title+"||"+str(similarity))
         similarities[id] = similarity
 
@@ -146,7 +154,8 @@ def handle_homonym(links, original_text):
     similarities = [0.0]*len(link_unhomonym)
     idNum = 0    
     for link in link_unhomonym:    
-        thread = threading.Thread(target = thread_function, args = (link, original_vector, idNum, vectorizer))
+        # thread = threading.Thread(target = thread_function, args = (link, original_vector, idNum, vectorizer))
+        thread = threading.Thread(target = thread_function, args = (link, original_text, idNum, model))
         thread.start()
         threadArr.append(thread)
         idNum = idNum+1
@@ -166,8 +175,8 @@ def re_search(wikiReader, original_text):
 
 def search_wiki(data):
     text = data['text']
-    usePara = data['usePara']
-    print(usePara[0])
+    # usePara = data['usePara']
+    usePara = data['usePara'][0]
     wikiReader = WIKI.page(text)
     if(wikiReader.exists()):
         if check_homonym(wikiReader):
