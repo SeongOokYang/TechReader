@@ -23,8 +23,8 @@ PORT = 8888
 okt = Okt()
 model = SentenceTransformer('homonym_handler/model')
 
-def wiki_data_json(word, summary, explain, related):
-    result = {'word': word, 'summary': summary, 'explain' : explain, 'related': related}
+def wiki_data_json(word, summary, explain, related, link_homonym):
+    result = {'word': word, 'summary': summary, 'explain' : explain, 'related': related, 'link_homonym' : link_homonym}
     return json.dumps(result, ensure_ascii=False)
 
 # def fetch_page_text(link):
@@ -167,34 +167,38 @@ def handle_homonym(links, original_text):
     for thread in threadArr:
         thread.join()
 
-    best_match = link_unhomonym[similarities.index(max(similarities))]
-    return best_match
+    # best_match = link_unhomonym[similarities.index(max(similarities))]
+    link_homonym = []
+    while(len(link_unhomonym) != 0):
+        link_homonym.append(link_unhomonym.pop(similarities.index(max(similarities))))
+        similarities.pop(similarities.index(max(similarities)))
+    return link_homonym
 
 def re_search(wikiReader, original_text):
     links = wikiReader.links
-    best_match_text = handle_homonym(links, original_text)
+    link_homonym = handle_homonym(links, original_text)
+    best_match_text = link_homonym.pop(0)
     result_page = WIKI.page(best_match_text)
-    return result_page
+    return result_page, link_homonym
 
 
 def search_wiki(data):
-    print(data)
     text = data['text'].lower()
-    # usePara = data['usePara']
     usePara = data['usePara']
     print(usePara)
     wikiReader = WIKI.page(text)
+    link_homonym = []
     if(wikiReader.exists()):
         if check_homonym(wikiReader):
-            wikiReader = re_search(wikiReader, usePara)
+            wikiReader, link_homonym = re_search(wikiReader, usePara)
         print(wikiReader.text)
-        word = text
+        word = wikiReader.title
         summary = wikiReader.summary
         explain, related = get_text(wikiReader)
-        result = wiki_data_json(word, summary, explain, related)
+        result = wiki_data_json(word, summary, explain, related, link_homonym)
         return result
     else:
-        return wiki_data_json(text, '해당 단어가 존재하지 않습니다.', '해당 단어가 존재하지 않습니다.', '해당 단어가 존재하지 않습니다.')
+        return wiki_data_json(text, '해당 단어가 존재하지 않습니다.', '해당 단어가 존재하지 않습니다.', '해당 단어가 존재하지 않습니다.', link_homonym)
 
 async def handle_request(request):
     data = await request.json()

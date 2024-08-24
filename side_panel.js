@@ -8,6 +8,7 @@ let summaryDiv = document.getElementById('summary');
 let explainDiv = document.getElementById('explain');
 let relatedList = document.getElementById('relatedList');
 let historyList = document.getElementById('historyList');
+let homonymList = document.getElementById("homonymList");
 
 $('body').on('mousedown', deleteButton);
 
@@ -79,7 +80,7 @@ function getTexts(){
 }
 
 function displaySwitch() {
-    $("body").children().toggle();
+    $("body").children().not($(".homonym")).not($(".related")).toggle();
 }
 
 function displayExplain(explainVal) {
@@ -105,10 +106,10 @@ function displayExplain(explainVal) {
 }
 
 function displayRelated(relatedVal) {
-    if(relatedVal != 'none' && relatedVal == '해당 단어가 존재하지 않습니다.') {
+    if(relatedVal != 'none' && relatedVal != '해당 단어가 존재하지 않습니다.') {
+        $(".related").show();
         let vals = relatedVal.split('|');
         sectionText = vals[2];
-        console.log(vals)
         section_Texts = sectionText.split("\n");
         for(text of section_Texts) {
             if(text.trim() !== ''){
@@ -122,6 +123,11 @@ function displayRelated(relatedVal) {
     }
 }
 
+function hyperLinkClick(event, data) {
+    event.preventDefault(); // Prevent the default link behavior
+    chrome.runtime.sendMessage({ request: data, action: "wikiSearchPanel" });
+};
+
 function displayHistory(history) {
     console.log("Received history:", history);  // 로그 추가
     historyList.innerHTML = '';
@@ -131,13 +137,34 @@ function displayHistory(history) {
         let link = document.createElement('a');
         link.href = '#';
         link.innerText = word;
-        link.onclick = function (event) {
-            event.preventDefault(); // Prevent the default link behavior
-            chrome.runtime.sendMessage({ request: hist, action: "wikiSearchPanel" });
-        };
+        // link.onclick = function (event) {
+        //     event.preventDefault(); // Prevent the default link behavior
+        //     chrome.runtime.sendMessage({ request: hist, action: "wikiSearchPanel" });
+        // };
+        link.addEventListener('click', (event) => {
+            hyperLinkClick(event, hist);
+        });
         li.appendChild(link);
         historyList.appendChild(li);
     });
+}
+
+function displayHomonym(link_homonym) {
+    if(link_homonym.length != 0) {
+        $(".homonym").show();
+        for(let link of link_homonym) {
+            let linkLi = document.createElement('LI');
+            let hyperLink = document.createElement('a');
+            hyperLink.href = '#';
+            hyperLink.innerText = link;
+            let data = {text:link, usePara:[]}
+            hyperLink.addEventListener('click',(event) => {
+                hyperLinkClick(event, data);
+            });
+            linkLi.appendChild(hyperLink);
+            homonymList.appendChild(linkLi);
+        }
+    }
 }
 
 
@@ -149,7 +176,8 @@ function getHistory() {
 }
 
 function putDataInDiv(json_data) {
-    console.log(json_data);
+    $(".homonym").hide();
+    $(".related").hide();
     data = JSON.parse(json_data);
     wordDiv.innerText = data.word;
     summaryDiv.innerText = data.summary;
@@ -159,6 +187,8 @@ function putDataInDiv(json_data) {
     relatedList.innerHTML = ''; // Clear the previous related list
     displayRelated(relatedStr);
     getHistory();
+    let homonymList = data.link_homonym;
+    displayHomonym(homonymList);
     $(".selectable").on("mouseup", getTexts);
 
     displaySwitch();
@@ -171,6 +201,7 @@ function clearDataDiv() {
     summaryDiv.innerText = "";
     explainDiv.innerText = "";
     relatedList.replaceChildren();
+    homonymList.replaceChildren();
 }
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
@@ -179,6 +210,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         clearDataDiv();
         putDataInDiv(message);
     }else if(request.action === "loading") {
+        $(".homonym").hide();
+        $(".related").hide();
         displaySwitch()
     }
     return true;
