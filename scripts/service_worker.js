@@ -3,6 +3,13 @@ let isSidePanelOpen = false;
 let searchHistory = [];
 const url = 'http://127.0.0.1:8888/'
 
+function makeHistory(response, request) {
+    responseParse = JSON.parse(response);
+    word = responseParse.word;
+    history = {text: word, usePara: request.request.usePara};
+    return history;
+}
+
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     if(request.action === "closeSideBar") {
         isSidePanelOpen = request.request;
@@ -20,7 +27,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             postData(url, message).then((response) => {
                 if (typeof(response) === 'string') {
                     searchOutcome = response;
-                    addToSearchHistory(request.request);
+                    history = makeHistory(response, request);
+                    addToSearchHistory(history);
                     chrome.runtime.sendMessage({ request: searchOutcome, action: "fill" });
                 } else {
                     sendResponse("error occurred in service-worker");
@@ -36,7 +44,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 if (typeof(response) === 'string') {
                     sendResponse(response);
                     searchOutcome = response;
-                    addToSearchHistory(request.request);
+                    history = makeHistory(response, request);
+                    addToSearchHistory(history);
                     chrome.runtime.sendMessage({ request: searchOutcome, action: "fill" });
                 } else {
                     sendResponse("error occurred in service-worker");
@@ -57,7 +66,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         postData(url, message).then((response) => {
             if (typeof(response) === 'string') {
                 searchOutcome = response;
-                addToSearchHistory(request.request);
+                history = makeHistory(response, request);
+                addToSearchHistory(history);
                 chrome.runtime.sendMessage({ request: searchOutcome, action: "fill" });
             } else {
                 sendResponse("error occurred in service-worker");

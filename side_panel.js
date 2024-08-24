@@ -19,6 +19,7 @@ function buttonClick() { // 버튼 클릭시, chrome플러그인의 service_work
             deleteButton();
         }
     });
+    selectText = '';
 }
 
 function makeButton(selectObj) {
@@ -40,7 +41,7 @@ function makeButton(selectObj) {
 }
 
 function changeButton() {
-    $("#pluginButton").attr("src",chrome.runtime.getURL('image/image_done.png'));
+    $("#pluginButton").attr("src",'image/image_done.png');
     $("#pluginButton").on("mousedown", buttonClick);
 }
 
@@ -76,6 +77,7 @@ function getTexts(){
         textUsePara = findUsePara(selectNode, textNodes, selectText);
         console.log(textUsePara);
         changeButton();
+        console.log(3333);
     }
 }
 
@@ -94,6 +96,7 @@ function displayExplain(explainVal) {
         sectionText = vals[2]
         console.log(sectionDept)
         let header = document.createElement('H'+sectionDept);
+        $(header).addClass("selectable");
         let titleText = document.createTextNode(sectionTitle);
         header.appendChild(titleText);
         let textP = document.createElement('P');
@@ -178,17 +181,29 @@ function getHistory() {
 function putDataInDiv(json_data) {
     $(".homonym").hide();
     $(".related").hide();
+
     data = JSON.parse(json_data);
+
     wordDiv.innerText = data.word;
-    summaryDiv.innerText = data.summary;
+
+    let summaryP = document.createElement('p');
+    $(summaryP).addClass('selectable');
+    let summaryText = document.createTextNode(data.summary);
+    summaryP.appendChild(summaryText);
+    summaryDiv.appendChild(summaryP);
+    
     let explainStr = data.explain;
     displayExplain(explainStr);
+    
     let relatedStr = data.related;
     relatedList.innerHTML = ''; // Clear the previous related list
     displayRelated(relatedStr);
+    
     getHistory();
+    
     let homonymList = data.link_homonym;
     displayHomonym(homonymList);
+    
     $(".selectable").on("mouseup", getTexts);
 
     displaySwitch();
@@ -198,8 +213,8 @@ function putDataInDiv(json_data) {
 
 function clearDataDiv() {
     wordDiv.innerText = "";
-    summaryDiv.innerText = "";
-    explainDiv.innerText = "";
+    summaryDiv.replaceChildren();
+    explainDiv.replaceChildren();
     relatedList.replaceChildren();
     homonymList.replaceChildren();
 }
