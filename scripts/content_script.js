@@ -58,6 +58,7 @@ function getTextNode(event) {
             textNodes = response;
             getUserSelectText(selectNode ,textNodes);
         });
+        
     }
 }
 //

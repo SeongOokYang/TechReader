@@ -8,6 +8,7 @@ let summaryDiv = document.getElementById('summary');
 let explainDiv = document.getElementById('explain');
 let relatedList = document.getElementById('relatedList');
 let historyList = document.getElementById('historyList');
+let homonymList = document.getElementById("homonymList");
 
 $('body').on('mousedown', deleteButton);
 
@@ -18,6 +19,7 @@ function buttonClick() { // 버튼 클릭시, chrome플러그인의 service_work
             deleteButton();
         }
     });
+    selectText = '';
 }
 
 function makeButton(selectObj) {
@@ -39,7 +41,7 @@ function makeButton(selectObj) {
 }
 
 function changeButton() {
-    $("#pluginButton").attr("src",chrome.runtime.getURL('image/image_done.png'));
+    $("#pluginButton").attr("src",'image/image_done.png');
     $("#pluginButton").on("mousedown", buttonClick);
 }
 
@@ -75,11 +77,12 @@ function getTexts(){
         textUsePara = findUsePara(selectNode, textNodes, selectText);
         console.log(textUsePara);
         changeButton();
+        console.log(3333);
     }
 }
 
 function displaySwitch() {
-    $("body").children().toggle();
+    $("body").children().not($(".homonym")).not($(".related")).toggle();
 }
 
 function displayExplain(explainVal) {
@@ -93,6 +96,7 @@ function displayExplain(explainVal) {
         sectionText = vals[2]
         console.log(sectionDept)
         let header = document.createElement('H'+sectionDept);
+        $(header).addClass("selectable");
         let titleText = document.createTextNode(sectionTitle);
         header.appendChild(titleText);
         let textP = document.createElement('P');
@@ -105,7 +109,8 @@ function displayExplain(explainVal) {
 }
 
 function displayRelated(relatedVal) {
-    if(relatedVal != 'none') {
+    if(relatedVal != 'none' && relatedVal != '해당 단어가 존재하지 않습니다.') {
+        $(".related").show();
         let vals = relatedVal.split('|');
         sectionText = vals[2];
         section_Texts = sectionText.split("\n");
@@ -121,6 +126,11 @@ function displayRelated(relatedVal) {
     }
 }
 
+function hyperLinkClick(event, data) {
+    event.preventDefault(); // Prevent the default link behavior
+    chrome.runtime.sendMessage({ request: data, action: "wikiSearchPanel" });
+};
+
 function displayHistory(history) {
     console.log("Received history:", history);  // 로그 추가
     historyList.innerHTML = '';
@@ -130,13 +140,34 @@ function displayHistory(history) {
         let link = document.createElement('a');
         link.href = '#';
         link.innerText = word;
-        link.onclick = function (event) {
-            event.preventDefault(); // Prevent the default link behavior
-            chrome.runtime.sendMessage({ request: hist, action: "wikiSearch" });
-        };
+        // link.onclick = function (event) {
+        //     event.preventDefault(); // Prevent the default link behavior
+        //     chrome.runtime.sendMessage({ request: hist, action: "wikiSearchPanel" });
+        // };
+        link.addEventListener('click', (event) => {
+            hyperLinkClick(event, hist);
+        });
         li.appendChild(link);
         historyList.appendChild(li);
     });
+}
+
+function displayHomonym(link_homonym) {
+    if(link_homonym.length != 0) {
+        $(".homonym").show();
+        for(let link of link_homonym) {
+            let linkLi = document.createElement('LI');
+            let hyperLink = document.createElement('a');
+            hyperLink.href = '#';
+            hyperLink.innerText = link;
+            let data = {text:link, usePara:[]}
+            hyperLink.addEventListener('click',(event) => {
+                hyperLinkClick(event, data);
+            });
+            linkLi.appendChild(hyperLink);
+            homonymList.appendChild(linkLi);
+        }
+    }
 }
 
 
@@ -148,16 +179,31 @@ function getHistory() {
 }
 
 function putDataInDiv(json_data) {
-    console.log(json_data);
+    $(".homonym").hide();
+    $(".related").hide();
+
     data = JSON.parse(json_data);
+
     wordDiv.innerText = data.word;
-    summaryDiv.innerText = data.summary;
+
+    let summaryP = document.createElement('p');
+    $(summaryP).addClass('selectable');
+    let summaryText = document.createTextNode(data.summary);
+    summaryP.appendChild(summaryText);
+    summaryDiv.appendChild(summaryP);
+    
     let explainStr = data.explain;
     displayExplain(explainStr);
+    
     let relatedStr = data.related;
     relatedList.innerHTML = ''; // Clear the previous related list
     displayRelated(relatedStr);
+    
     getHistory();
+    
+    let homonymList = data.link_homonym;
+    displayHomonym(homonymList);
+    
     $(".selectable").on("mouseup", getTexts);
 
     displaySwitch();
@@ -167,9 +213,10 @@ function putDataInDiv(json_data) {
 
 function clearDataDiv() {
     wordDiv.innerText = "";
-    summaryDiv.innerText = "";
-    explainDiv.innerText = "";
+    summaryDiv.replaceChildren();
+    explainDiv.replaceChildren();
     relatedList.replaceChildren();
+    homonymList.replaceChildren();
 }
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
@@ -178,6 +225,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         clearDataDiv();
         putDataInDiv(message);
     }else if(request.action === "loading") {
+        $(".homonym").hide();
+        $(".related").hide();
         displaySwitch()
     }
     return true;

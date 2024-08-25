@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
     <head>
         <title>TechReader SideBar</title>
+        <meta charset="utf-8">
         <link rel="stylesheet" href="side_panel.css">
         <script src="scripts/jquery-3.7.1.min.js"></script>
     </head>
@@ -10,12 +11,17 @@
         <h1>Word</h1>
         <div id="word"></div>
         <h1>Summary</h1>
-        <div id="summary" class="dataDiv selectable"></div>
+        <div id="summary" class="dataDiv"></div>
         <h1>Explain</h1>
         <div id="explain" class="dataDiv"></div>
-        <h1>Related Words</h1>
-        <div id="related" class="dataDiv">
+        <h1 class="related">Related Words</h1>
+        <div id="related" class="dataDiv related">
             <ul id="relatedList"></ul>
+        </div>
+        <h1 class="homonym">homonym words</h1>
+        <div id="homonym" class="dataDiv homonym">
+            <p>아래 리스트는 검색 결과가 원하는 정보가 아니었을 시 사용합니다. 순서가 빠를수록 원하는 정보일 확률이 높습니다.</p>
+            <ol id="homonymList"></ol>
         </div>
         <h1>Search History</h1>
         <div id="history" class="dataDiv">
