@@ -17,3 +17,22 @@ img {
 #pluginButton {
     display: flex;
 }
+
+.dataDiv p, #summary {
+    margin: 10px 0; /* 각 문단에 여백을 추가 */
+    line-height: 1.6; /* 텍스트의 줄 간격을 조정 */
+}
+
+.dataDiv h1, .dataDiv h2, .dataDiv h3, .dataDiv h4, .dataDiv h5, .dataDiv h6,
+#summary h1, #summary h2, #summary h3, #summary h4, #summary h5, #summary h6 {
+    margin-top: 15px; /* 제목과 다음 내용 간의 간격을 늘림 */
+    margin-bottom: 10px; /* 제목과 이전 내용 간의 간격을 늘림 */
+    line-height: 1.4;
+}
+
+/* #summary 에 들어가는 일반 텍스트도 줄 간격 및 여백 적용 */
+#summary {
+    margin: 10px 0;
+    line-height: 1.6;
+}
+
