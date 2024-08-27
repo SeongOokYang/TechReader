@@ -214,7 +214,7 @@ function delHistory(event) {
     chrome.runtime.sendMessage({action: "delHistory", request: history});
 }
 
-function delAllHistory(event) {
+function delAllHistory() {
     chrome.runtime.sendMessage({action: "delAllHistory"});
     $("#historyList").empty();
 }
@@ -269,7 +269,6 @@ function userTypeSearch(text) {
 
 function getSearchText(){
     let text = $("#userTextInput").val().trim();
-    console.log(text);
     if(text != "") {
         userTypeSearch(text);
     }
@@ -286,7 +285,6 @@ function enterKeySearchText(event) {
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     if(request.action === "fill") {
-        loadingOn();
         let message = request.request;
         clearDataDiv();
         putDataInDiv(message);

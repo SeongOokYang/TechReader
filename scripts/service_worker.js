@@ -59,8 +59,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         //         sendResponse("error occurred");
         //     });
         // }else {
-            chrome.sidePanel.open({ tabId: sender.tab.id });
             isDrag = true;
+            chrome.runtime.sendMessage({action: 'loading'})
+            chrome.sidePanel.open({ tabId: sender.tab.id });
             postData(url, message).then((response) => {
                 if (typeof(response) === 'string') {
                     sendResponse(response);
