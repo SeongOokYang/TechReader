@@ -1,13 +1,20 @@
-.dataDiv {
+.dataDiv, #historyDiv {
     width: 300px;
     height: 300px;
     overflow-y : auto;
     border: 1px solid black;
     padding: 5px;
 }
+.data, .dataDiv {
+    display: none;
+}
+
+.delButton {
+    float : right;
+}
 
 img {
-    display: none;
+    display:none;
     position: absolute;
     top: 50%;
     left: 50%;

@@ -1,11 +1,14 @@
 {
     "manifest_version" : 3,
-    "name" : "TechReader",
+    "name" : "WikiSearcher",
     "description": "Use Drag to search word Definition. It will search wikipedia",
     "version" : "1.0", 
     "permissions" : [
-        "sidePanel"
+        "sidePanel", "contextMenus", "storage"
     ],
+    "icons" : {
+        "16":"image/image_done.png"
+    },
 
     "background": {
         "service_worker":"scripts/service_worker.js"

@@ -1,7 +1,14 @@
 let searchOutcome = "";
-let isSidePanelOpen = false;
+// let isSidePanelOpen = false;
+let isDrag = false;
 let searchHistory = [];
 const url = 'http://127.0.0.1:8888/'
+
+chrome.storage.local.get(['searchHistory']).then((result) => {
+    if(result.searchHistory !== undefined) {
+        searchHistory = result.searchHistory;
+    }
+});
 
 function makeHistory(response, request) {
     responseParse = JSON.parse(response);
@@ -10,36 +17,51 @@ function makeHistory(response, request) {
     return history;
 }
 
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-    if(request.action === "closeSideBar") {
-        isSidePanelOpen = request.request;
-        sendResponse(isSidePanelOpen);
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+    if(info.menuItemId === "wikiSearcher") {
+        chrome.sidePanel.open({ tabId: tab.id });
+        isDrag = false;
+        // isSidePanelOpen = true;
     }
 });
+
+chrome.runtime.onInstalled.addListener(()=> {
+    chrome.contextMenus.create({
+        title: "wikiSearcher",
+        id: 'wikiSearcher'
+        }
+    );
+});
+
+// chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+//     if(request.action === "closeSideBar") {
+//         isSidePanelOpen = request.request;
+//         sendResponse(isSidePanelOpen);
+//     }
+// });
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     let message = { request: request.request };
     if (request.action === "wikiSearch") {
-        if(!isSidePanelOpen) {
-            console.log(10);
+        // if(!isSidePanelOpen) {
+        //     chrome.sidePanel.open({ tabId: sender.tab.id });
+        //     isSidePanelOpen = true;
+        //     postData(url, message).then((response) => {
+        //         if (typeof(response) === 'string') {
+        //             searchOutcome = response;
+        //             history = makeHistory(response, request);
+        //             addToSearchHistory(history);
+        //             chrome.runtime.sendMessage({ request: searchOutcome, action: "fill" });
+        //         } else {
+        //             sendResponse("error occurred in service-worker");
+        //         }
+        //     }).catch((error) => {
+        //         sendResponse("error occurred");
+        //     });
+        // }else {
+            isDrag = true;
+            chrome.runtime.sendMessage({action: 'loading'})
             chrome.sidePanel.open({ tabId: sender.tab.id });
-            isSidePanelOpen = true;
-            postData(url, message).then((response) => {
-                if (typeof(response) === 'string') {
-                    searchOutcome = response;
-                    history = makeHistory(response, request);
-                    addToSearchHistory(history);
-                    chrome.runtime.sendMessage({ request: searchOutcome, action: "fill" });
-                } else {
-                    sendResponse("error occurred in service-worker");
-                }
-            }).catch((error) => {
-                sendResponse("error occurred");
-            });
-        }else {
-            console.log(20);
-            chrome.sidePanel.open({ tabId: sender.tab.id });
-            chrome.runtime.sendMessage({action: "loading"});
             postData(url, message).then((response) => {
                 if (typeof(response) === 'string') {
                     sendResponse(response);
@@ -53,7 +75,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             }).catch((error) => {
                 sendResponse("error occurred");
             });
-        }
+        // }
     } else if(request.action === "get_text") {
         postData('http://127.0.0.1:8888/get_text', message).then((response) => {
             sendResponse(response)
@@ -75,6 +97,18 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         }).catch((error) => {
             sendResponse("error occurred");
         });
+    }else if(request.action == "isDrag") {
+        sendResponse(isDrag);
+    }else if(request.action == 'delHistory') {
+        let delTargetHist = request.request;
+        console.log(delTargetHist);
+        searchHistory = searchHistory.filter((history) => history.text !== delTargetHist);
+        chrome.storage.local.set({'searchHistory': searchHistory}, function() {
+            console.log(searchHistory);
+        })
+    }else if(request.action == "delAllHistory") {
+        chrome.storage.local.clear();
+        searchHistory = [];
     }
 
     return true;
@@ -85,8 +119,12 @@ function addToSearchHistory(word) {
     const includesArray = (hist, comp) => {
         return hist.some(item => item.text === comp.text);
     }
+    console.log(searchHistory);
     if (!includesArray(searchHistory,word)) {
         searchHistory.push(word);
+        chrome.storage.local.set({'searchHistory': searchHistory}, function() {
+            console.log(searchHistory);
+        });
     }
 }
 

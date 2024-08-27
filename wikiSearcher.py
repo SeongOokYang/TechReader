@@ -77,10 +77,32 @@ def get_sections(sections, dept = 2):
         
     return sections_str, related
 
+def findRelatedLink(wikiReader, related):
+    links = wikiReader.links
+    related = related.split('|')[2]
+    relatedList = related.split('\n')
+    relatedSplits = []
+    for relatedVal1 in relatedList:
+        relatedVal1s = relatedVal1.split(':')
+        for relatedVal2 in relatedVal1s:
+            relatedVal2s = relatedVal2.split(',')
+            for relatedInner in relatedVal2s:
+                if(relatedInner != '' and relatedInner != '\n' and relatedInner != "== 각주 =="):
+                    if(WIKI.page(relatedInner).exists()):
+                        relatedSplits.append(relatedInner.strip())
+
+    relatedLinks = [link for link in relatedSplits if link in links]
+
+    return relatedLinks
+    
+
+
 def get_text(wikiReader):
     # top_related = get_top_related_words(related, original_text)
     sections = wikiReader.sections
     sectionArr, related = get_sections(sections)
+    if(related != 'none' and related != "해당 단어가 존재하지 않습니다."):
+        related = findRelatedLink(wikiReader, related)
     str_section = '|-|'.join(sectionArr)
     return str_section, related
 
@@ -183,12 +205,22 @@ def re_search(wikiReader, original_text):
 
 
 def search_wiki(data):
-    text = data['text'].lower()
+    text = data['text']
     usePara = data['usePara']
     print(usePara)
     wikiReader = WIKI.page(text)
     link_homonym = []
     if(wikiReader.exists()):
+        if check_homonym(wikiReader):
+            wikiReader, link_homonym = re_search(wikiReader, usePara)
+        print(wikiReader.text)
+        word = wikiReader.title
+        summary = wikiReader.summary
+        explain, related = get_text(wikiReader)
+        result = wiki_data_json(word, summary, explain, related, link_homonym)
+        return result
+    elif(WIKI.page(text.lower()).exists()):
+        wikiReader = WIKI.page(text.lower())
         if check_homonym(wikiReader):
             wikiReader, link_homonym = re_search(wikiReader, usePara)
         print(wikiReader.text)
