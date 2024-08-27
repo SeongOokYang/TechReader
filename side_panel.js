@@ -1,17 +1,3 @@
-displaySwitch();
-
-let selectText = '';
-let textUsePara = [];
-
-let wordDiv = document.getElementById('word');
-let summaryDiv = document.getElementById('summary');
-let explainDiv = document.getElementById('explain');
-let relatedList = document.getElementById('relatedList');
-let historyList = document.getElementById('historyList');
-let homonymList = document.getElementById("homonymList");
-
-$('body').on('mousedown', deleteButton);
-
 function buttonClick() { // 버튼 클릭시, chrome플러그인의 service_worker에 select한 단어의 정의를 요청하는 함수
     let requestData = {text:selectText, usePara:textUsePara};
     chrome.runtime.sendMessage({request : requestData, action:"wikiSearchPanel"},function (response) {
@@ -63,7 +49,6 @@ function findUsePara(selectNode,textNodes, text) {
 function getTexts(){
     let selectObj = window.getSelection();
     let selectNode = selectObj.anchorNode.nodeValue;
-    console.log(selectObj);
     selectText = selectObj.toString().trim();
     
     if(selectText !== '' && selectText !== " " && selectText !== "\n") {
@@ -73,16 +58,34 @@ function getTexts(){
         pNodes.forEach(function(pNode) {
             textNodes.push($(pNode).text());
         });
-        console.log(textNodes);
         textUsePara = findUsePara(selectNode, textNodes, selectText);
-        console.log(textUsePara);
         changeButton();
-        console.log(3333);
     }
 }
 
-function displaySwitch() {
-    $("body").children().not($(".homonym")).not($(".related")).toggle();
+
+function loadingOn() {
+    $("body").children().not($(".homonym")).not($(".related")).hide();
+    $("#loading").show();
+}
+
+function loadingFin() {
+    $("body").children().not($(".homonym")).not($(".related")).show();
+    $("#loading").hide();
+}
+
+function readyToType() {
+    chrome.runtime.sendMessage({action: "isDrag"}, (response) => {
+        if(!response) {
+            $("#loading").hide();
+            $(".userText").show();
+            $("#word").show();
+            $("#history").show();
+            $("#historyDiv").show();
+            $("#deleteAllButton").show();
+        }
+    })
+    
 }
 
 function displayExplain(explainVal) {
@@ -108,28 +111,47 @@ function displayExplain(explainVal) {
     }
 }
 
-function displayRelated(relatedVal) {
-    if(relatedVal != 'none' && relatedVal != '해당 단어가 존재하지 않습니다.') {
-        $(".related").show();
-        let vals = relatedVal.split('|');
-        sectionText = vals[2];
-        section_Texts = sectionText.split("\n");
-        for(text of section_Texts) {
-            if(text.trim() !== ''){
-                let li = document.createElement('LI');
-                let textNode = document.createTextNode(text);
-                $(li).addClass("selectable");
-                li.appendChild(textNode);
-                relatedList.appendChild(li);
-            }
-        }
-    }
-}
-
 function hyperLinkClick(event, data) {
     event.preventDefault(); // Prevent the default link behavior
     chrome.runtime.sendMessage({ request: data, action: "wikiSearchPanel" });
 };
+
+function getTextAfter(relatedLinks) {
+    let textAfter = []
+    relatedLinks.forEach(link => {
+        let text = "<a href='#'>"+link+"</a>";
+        textAfter.push(text);
+    });
+    
+    return textAfter;
+}
+
+function displayRelated(relatedLinks) {
+    if(relatedLinks != 'none' && relatedLinks != '해당 단어가 존재하지 않습니다.') {
+        $(".related").show();
+        
+        let pNodes = $("p").get();
+        let pNodesText = [];
+        pNodes.forEach(function(pNode) {
+            pNodesText.push($(pNode).text());
+        });
+        let textAfter = getTextAfter(relatedLinks)
+        textAfter.forEach(text => {
+            let li = document.createElement('LI');
+            $(li).html(text);
+            relatedList.appendChild(li);
+        });
+        let relatedListAs = $(relatedList).find('a');
+        for(let relatedA of relatedListAs) {
+            let related = $(relatedA).text();
+            let data = {text: related, usePara: pNodesText};
+            relatedA.addEventListener('click', (event) => {
+                hyperLinkClick(event, data);
+            });
+        }
+    }
+}
+
 
 function displayHistory(history) {
     console.log("Received history:", history);  // 로그 추가
@@ -137,6 +159,11 @@ function displayHistory(history) {
     history.forEach(hist => {
         let word = hist.text
         let li = document.createElement('LI');
+        let spanLink = document.createElement('span');
+        let spanX = document.createElement('span');
+        $(spanX).addClass('delButton');
+        $(spanX).text('X');
+        spanX.addEventListener('click', delHistory)
         let link = document.createElement('a');
         link.href = '#';
         link.innerText = word;
@@ -147,7 +174,9 @@ function displayHistory(history) {
         link.addEventListener('click', (event) => {
             hyperLinkClick(event, hist);
         });
-        li.appendChild(link);
+        spanLink.appendChild(link);
+        li.appendChild(spanLink);
+        li.appendChild(spanX);
         historyList.appendChild(li);
     });
 }
@@ -178,9 +207,22 @@ function getHistory() {
     });
 }
 
+function delHistory(event) {
+    let targetButton = event.target;
+    let history = $(targetButton).prev().children().eq(0).text();
+    $(targetButton).parent().remove();
+    chrome.runtime.sendMessage({action: "delHistory", request: history});
+}
+
+function delAllHistory(event) {
+    chrome.runtime.sendMessage({action: "delAllHistory"});
+    $("#historyList").empty();
+}
+
 function putDataInDiv(json_data) {
     $(".homonym").hide();
     $(".related").hide();
+    $("#userTextInput").val("");
 
     data = JSON.parse(json_data);
 
@@ -195,9 +237,9 @@ function putDataInDiv(json_data) {
     let explainStr = data.explain;
     displayExplain(explainStr);
     
-    let relatedStr = data.related;
+    let relatedLinks = data.related;
     relatedList.innerHTML = ''; // Clear the previous related list
-    displayRelated(relatedStr);
+    displayRelated(relatedLinks);
     
     getHistory();
     
@@ -206,7 +248,7 @@ function putDataInDiv(json_data) {
     
     $(".selectable").on("mouseup", getTexts);
 
-    displaySwitch();
+    loadingFin();
 }
 
 
@@ -219,19 +261,66 @@ function clearDataDiv() {
     homonymList.replaceChildren();
 }
 
+function userTypeSearch(text) {
+    usePara = [];
+    data = {text: text, usePara: usePara}
+    chrome.runtime.sendMessage({ request: data, action: "wikiSearchPanel" });
+}
+
+function getSearchText(){
+    let text = $("#userTextInput").val().trim();
+    console.log(text);
+    if(text != "") {
+        userTypeSearch(text);
+    }
+}
+
+function enterKeySearchText(event) {
+    if(event.keyCode == 13) {
+        let text = $("#userTextInput").val().trim();
+        if(text != "") {
+            userTypeSearch(text);
+        }
+    }
+}
+
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     if(request.action === "fill") {
+        loadingOn();
         let message = request.request;
         clearDataDiv();
         putDataInDiv(message);
     }else if(request.action === "loading") {
         $(".homonym").hide();
         $(".related").hide();
-        displaySwitch()
+        loadingOn();
     }
     return true;
 });
 
-addEventListener("beforeunload", (event) => {
-    chrome.runtime.sendMessage({ action: "closeSideBar", request: false }, (response)=>{console.log('sidePanelClosed')});
-});
+// addEventListener("beforeunload", (event) => {
+//     chrome.runtime.sendMessage({ action: "closeSideBar", request: false }, (response)=>{console.log('sidePanelClosed')});
+// });
+loadingOn();
+
+getHistory();
+
+let selectText = '';
+let textUsePara = [];
+
+let wordDiv = document.getElementById('wordDiv');
+let summaryDiv = document.getElementById('summaryDiv');
+let explainDiv = document.getElementById('explainDiv');
+let relatedList = document.getElementById('relatedList');
+let historyList = document.getElementById('historyList');
+let homonymList = document.getElementById("homonymList");
+let userTextInput = document.getElementById("userTextInput");
+let textSendButton = document.getElementById("textSendButton");
+let allHistoryDelete = document.getElementById("deleteAllButton");
+userTextInput.addEventListener('keypress', enterKeySearchText);
+textSendButton.addEventListener('click', getSearchText);
+allHistoryDelete.addEventListener('click', delAllHistory);
+
+$('body').on('mousedown', deleteButton);
+
+$(document).ready(readyToType());
