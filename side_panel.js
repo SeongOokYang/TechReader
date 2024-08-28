@@ -167,10 +167,6 @@ function displayHistory(history) {
         let link = document.createElement('a');
         link.href = '#';
         link.innerText = word;
-        // link.onclick = function (event) {
-        //     event.preventDefault(); // Prevent the default link behavior
-        //     chrome.runtime.sendMessage({ request: hist, action: "wikiSearchPanel" });
-        // };
         link.addEventListener('click', (event) => {
             hyperLinkClick(event, hist);
         });
@@ -296,9 +292,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     return true;
 });
 
-// addEventListener("beforeunload", (event) => {
-//     chrome.runtime.sendMessage({ action: "closeSideBar", request: false }, (response)=>{console.log('sidePanelClosed')});
-// });
 loadingOn();
 
 getHistory();
