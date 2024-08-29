@@ -373,6 +373,9 @@ async def handle_request(request):
     return web.Response(text = search_wiki(data))
 
 def crawl_text(url):
+    """
+    beautiful soup 모듈을 이용하여 검색을 요청한 웹 페이지의 모든 text내용물을 가져옴
+    """
     response = requests.get(url)
     if response.status_code == 200:
         html = response.text
