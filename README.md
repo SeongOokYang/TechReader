@@ -73,9 +73,9 @@ BERT 모델을 사용해 인자로 받은 문장들을 임베딩 한 후 cosine_
 ---
 
 ## image 폴더
->image_done.png : 검색 준비가 완료됬음을 나타내는 이미지
->image_ready.png : 검색을 준비함을 나타내는 이미지
->loading_screen.gif : 사이드 패널의 로딩화면에 사용하는 이미지
+>+ image_done.png : 검색 준비가 완료됬음을 나타내는 이미지
+>+ image_ready.png : 검색을 준비함을 나타내는 이미지
+>+ loading_screen.gif : 사이드 패널의 로딩화면에 사용하는 이미지
 
 ---
 
