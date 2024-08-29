@@ -17,7 +17,7 @@ function buttonClick() {
  */
 function makeButton(selectObj) {
     let pluginButton = document.createElement("img");
-    $(pluginButton).attr('src','image/image_ready.png');
+    $(pluginButton).attr('src','../image/image_ready.png');
     $(pluginButton).attr('id',"pluginButton");
     //chatGPT 생성 코드
     const range = selectObj.getRangeAt(0);
@@ -37,7 +37,7 @@ function makeButton(selectObj) {
  * 검색 준비가 완료되면 플러그인 버튼의 이미지를 바꿈
  */
 function changeButton() {
-    $("#pluginButton").attr("src",'image/image_done.png');
+    $("#pluginButton").attr("src",'../image/image_done.png');
     $("#pluginButton").on("mousedown", buttonClick);
 }
 

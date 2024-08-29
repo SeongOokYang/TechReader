@@ -28,6 +28,6 @@
     ],
 
     "side_panel" : {
-        "default_path" : "side_panel.html"
+        "default_path" : "sidePanel/side_panel.html"
     }
 }
