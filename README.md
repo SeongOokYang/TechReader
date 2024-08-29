@@ -81,6 +81,6 @@ BERT 모델을 사용해 인자로 받은 문장들을 임베딩 한 후 cosine_
 
 ## wikiSearcher.py
 
->플러그인의 서버를 구성하는 파일
->aiohttp 프레임워크를 사용하여 서버를 구성
->위키피디아 검색을 위해 wikipedia-api 모듈을 사용
+>+ 플러그인의 서버를 구성하는 파일
+>+ aiohttp 프레임워크를 사용하여 서버를 구성
+>+ 위키피디아 검색을 위해 wikipedia-api 모듈을 사용
