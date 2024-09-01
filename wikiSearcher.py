@@ -23,6 +23,10 @@ PORT = 8888
 okt = Okt()
 model = SentenceTransformer('homonym_handler/model')
 
+def remove_brackets(text):
+
+    return re.sub(r'\([^)]*\)', '', text).strip()
+
 def wiki_data_json(word, summary, explain, related, link_homonym):
     """
     sidePanel에 제공할 json정보 객체를 만드는 함수
@@ -39,6 +43,9 @@ def wiki_data_json(word, summary, explain, related, link_homonym):
 
     return: 위 내용물을 json형식으로 변환한 객체를 반환
     """ 
+    summary = remove_brackets(summary)
+    explain = remove_brackets(explain)
+
     result = {'word': word, 'summary': summary, 'explain' : explain, 'related': related, 'link_homonym' : link_homonym}
     return json.dumps(result, ensure_ascii=False)
 
