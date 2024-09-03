@@ -28,6 +28,7 @@
 ## MathJax - submodule
 
 문서 내의 수식과 같이 추가적인 Rendering이 필요한 LaTeX문법을 처리하기 위해 추가시킨 오픈 소스 js display engine
+
 GitHub 주소 : <https://github.com/mathjax/MathJax/tree/b6922e564070d20888f680a289381702a266718f>
 
 ---
