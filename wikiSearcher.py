@@ -23,9 +23,9 @@ PORT = 8888
 okt = Okt()
 model = SentenceTransformer('homonym_handler/model')
 
-def remove_brackets(text):
+# def remove_brackets(text):
 
-    return re.sub(r'\([^)]*\)', '', text).strip()
+#     return re.sub(r'\([^)]*\)', '', text).strip()
 
 def wiki_data_json(word, summary, explain, related, link_homonym):
     """
@@ -43,8 +43,8 @@ def wiki_data_json(word, summary, explain, related, link_homonym):
 
     return: 위 내용물을 json형식으로 변환한 객체를 반환
     """ 
-    summary = remove_brackets(summary)
-    explain = remove_brackets(explain)
+    # summary = remove_brackets(summary)
+    # explain = remove_brackets(explain)
 
     result = {'word': word, 'summary': summary, 'explain' : explain, 'related': related, 'link_homonym' : link_homonym}
     return json.dumps(result, ensure_ascii=False)
@@ -85,6 +85,58 @@ def wiki_data_json(word, summary, explain, related, link_homonym):
     # return top_related
 ###
 
+def remove_dummy_text(text):
+    text = re.sub(r'\n+', '\n', text)
+    text = re.sub(r'\s{2,}\\\(\\', r'\n\\(\\', text)
+    print(repr(text))
+    text_split = text.split('\n')
+    result = []
+    for textVal in text_split:
+        if(not re.match(r"(\s{2,}.+)", textVal)):
+            result.append(textVal)
+    
+    return "\n".join(result)
+
+def change_brace(section_text):
+    stack = []
+    result = []
+    
+    for char in section_text:
+        if char == '|':
+            if not stack:
+                stack.append(char)
+                result.append('\\(\\')
+            else:
+                stack.append('`')
+                result.append('\\')
+            
+        elif char == '}':
+            if stack and stack[-1] == '|':
+                stack.pop()
+                result.append('\\)')
+            elif stack and stack[-1] == '`':
+                stack.pop()
+            else:
+                stack.pop()
+                result.append(char)
+        elif char == '{':
+            stack.append(char)
+            result.append(char)
+        else:
+            result.append(char)
+
+    return ''.join(result)
+
+
+def handle_latex(section_text):
+    print('enter_latex')
+    re_text = re.sub(r'{\\', '|', section_text)
+    section_change = change_brace(re_text)
+    print(section_change)
+    result = remove_dummy_text(section_change)
+    
+    return result
+
 def get_sections(sections, dept = 2):
     """
     위키피디아 정보 페이지의 데이터를 section별로 나누어 배열에 저장에 반환하는 함수
@@ -97,20 +149,23 @@ def get_sections(sections, dept = 2):
     
     return : section을 순서별로 저장한 배열과 related 반환
     """
-    sections_str = []
+    sectionS_arr = []
     related = 'none'
     for section in sections:
         if(section != ''):
-            sectionStr = str(dept) + "|" + section.title + "|" + section.text
+            section_text = section.text
+            if('{\\' in section_text):
+                section_text = handle_latex(section_text)
+            section_arr = [dept, section.title, section_text]
+            
             if(section.title == "같이 보기"):
-                related = sectionStr
+                related = section_arr
             else:
-                sections_str.append(sectionStr)
-                sections_str2,_ = get_sections(section.sections, dept = dept+1)
-                if sections_str2:
-                    sections_str = sections_str + sections_str2
-        
-    return sections_str, related
+                sectionS_arr.append(section_arr)
+                sectionS_arr2,_ = get_sections(section.sections, dept = dept+1)
+                if sectionS_arr2:
+                    sectionS_arr = sectionS_arr + sectionS_arr2
+    return sectionS_arr, related
 
 def findRelatedLink(wikiReader, related):
     """
@@ -121,14 +176,14 @@ def findRelatedLink(wikiReader, related):
     related: get_section함수에서 반환받은 related 정보
     """
     links = wikiReader.links
-    related = related.split('|')[2]
+    related = related[2]
     relatedList = related.split('\n')
     relatedSplits = []
 
-    for related in relatedList:
-        if(related.strip() != ""):
-            if(WIKI.page(related).exists()):
-                relatedSplits.append(related.strip())
+    for relatedVal in relatedList:
+        if(relatedVal.strip() != ""):
+            if(WIKI.page(relatedVal).exists()):
+                relatedSplits.append(relatedVal.strip())
 
     relatedLinks = [link for link in relatedSplits if link in links]
 
@@ -156,8 +211,7 @@ def get_text(wikiReader):
     sectionArr, related = get_sections(sections)
     if(related != 'none' and related != "해당 단어가 존재하지 않습니다."):
         related = findRelatedLink(wikiReader, related)
-    str_section = '|-|'.join(sectionArr)
-    return str_section, related
+    return sectionArr, related
 
 def check_homonym(wikiReader):
     """
@@ -346,13 +400,12 @@ def search_wiki(data):
     """
     text = data['text']
     usePara = data['usePara']
-    print(usePara)
     wikiReader = WIKI.page(text)
     link_homonym = []
     if(wikiReader.exists()):
+        print(repr(wikiReader.text))
         if check_homonym(wikiReader):
             wikiReader, link_homonym = re_search(wikiReader, usePara)
-        print(wikiReader.text)
         word = wikiReader.title
         summary = wikiReader.summary
         explain, related = get_text(wikiReader)
@@ -362,7 +415,6 @@ def search_wiki(data):
         wikiReader = WIKI.page(text.lower())
         if check_homonym(wikiReader):
             wikiReader, link_homonym = re_search(wikiReader, usePara)
-        print(wikiReader.text)
         word = wikiReader.title
         summary = wikiReader.summary
         explain, related = get_text(wikiReader)

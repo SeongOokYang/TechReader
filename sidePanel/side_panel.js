@@ -121,18 +121,13 @@ function readyToType() {
 
 /**
  * 서버에서 전달한 json객체 중 explain부분의 정보를 가져와서 section별로 explainDiv 안에 표현하는 함수
- * @param {*} explainVal 서버에서 전달한 json객체 중 explain부분의 정보를 가진 변수
+ * @param {*} explain 서버에서 전달한 json객체 중 explain부분의 정보를 가진 변수
  */
-function displayExplain(explainVal) {
-    let strVals = explainVal.split('|-|');
-
-    for (let val of strVals) {
-        console.log(val)
-        let vals = val.split('|');
-        sectionDept = Number(vals[0])
-        sectionTitle = vals[1]
-        sectionText = vals[2]
-        console.log(sectionDept)
+function displayExplain(explain) {
+    for (let val of explain) {
+        sectionDept = val[0]
+        sectionTitle = val[1]
+        sectionText = val[2]
         let header = document.createElement('H'+sectionDept);
         $(header).addClass("selectable"); //selectable 속성을 추가(이 속성이 있어야 단어에 드래그 했을 때, 버튼을 생성함)
         let titleText = document.createTextNode(sectionTitle);
@@ -144,6 +139,8 @@ function displayExplain(explainVal) {
         explainDiv.appendChild(header);
         explainDiv.appendChild(textP);
     }
+    MathJax.typeset();
+
 }
 
 /**

@@ -29,5 +29,10 @@
 
     "side_panel" : {
         "default_path" : "sidePanel/side_panel.html"
+    },
+
+    "content_security_policy": {
+        "extemsion_pages" : "script-src 'self' https://cdnjs.cloudflare.com; object-src 'self'"
     }
+
 }
