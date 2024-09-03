@@ -121,7 +121,7 @@ function readyToType() {
 
 /**
  * 서버에서 전달한 json객체 중 explain부분의 정보를 가져와서 section별로 explainDiv 안에 표현하는 함수
- * @param {*} explain 서버에서 전달한 json객체 중 explain부분의 정보를 가진 변수
+ * @param {*} explain 서버에서 전달한 json객체 중 explain부분의 정보를 가진 배열
  */
 function displayExplain(explain) {
     for (let val of explain) {
@@ -139,7 +139,7 @@ function displayExplain(explain) {
         explainDiv.appendChild(header);
         explainDiv.appendChild(textP);
     }
-    MathJax.typeset();
+    MathJax.typeset(); //explain을 작성한 후, MathJax에게 Latex문법 rendering을 진행하게 함
 
 }
 

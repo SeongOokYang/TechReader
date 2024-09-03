@@ -23,10 +23,6 @@ PORT = 8888
 okt = Okt()
 model = SentenceTransformer('homonym_handler/model')
 
-# def remove_brackets(text):
-
-#     return re.sub(r'\([^)]*\)', '', text).strip()
-
 def wiki_data_json(word, summary, explain, related, link_homonym):
     """
     sidePanel에 제공할 json정보 객체를 만드는 함수
@@ -43,8 +39,6 @@ def wiki_data_json(word, summary, explain, related, link_homonym):
 
     return: 위 내용물을 json형식으로 변환한 객체를 반환
     """ 
-    # summary = remove_brackets(summary)
-    # explain = remove_brackets(explain)
 
     result = {'word': word, 'summary': summary, 'explain' : explain, 'related': related, 'link_homonym' : link_homonym}
     return json.dumps(result, ensure_ascii=False)
@@ -86,18 +80,34 @@ def wiki_data_json(word, summary, explain, related, link_homonym):
 ###
 
 def remove_dummy_text(text):
+    """
+    wikipedia latex형식({\......})이 해당 형식 앞에 내용으로 사용된 parmeter들을 포함하고 있기에 중복으로 사용하면 렌더링 후, 그 앞에 parameter들이 중복으로 출력되게 됨.
+    그래서 그것을 제거해 주는 함수가 필요
+
+    text: change_brace()함수의 결과로 만들어진 MathJax latex형식의 문장
+
+    return: 중복이 아닌 parameter들을 모아놓은 배열을 줄바꿈을 구분자로 결합시킨 str 변수 반환
+    """
     text = re.sub(r'\n+', '\n', text)
     text = re.sub(r'\s{2,}\\\(\\', r'\n\\(\\', text)
-    print(repr(text))
     text_split = text.split('\n')
     result = []
     for textVal in text_split:
-        if(not re.match(r"(\s{2,}.+)", textVal)):
+        if(not re.match(r"(\s{2,}.+)", textVal)): #줄바꿈을 기준으로 나누면 중복 parameter들이 앞에 2개 이상의 공백을 포함한 영어 text로 구분되게 됨 - 그것을 파악하여 제외함
             result.append(textVal)
     
     return "\n".join(result)
 
 def change_brace(section_text):
+    """
+    MathJax에서 사용하는 inline형식의 latex문서 형식('\(\....\)')으로 변경하기 위해 wikipedia latex의 형식('{\...}')을 수정하는 함수 
+    
+    section_text: section별로 문서의 내용을 정리한 배열
+
+    stack: '{'와 '}'를 매칭시키기 위해 사용하는 stack
+
+    return: 괄호를 수정한 한 section의 문서 내용 배열을 이어붙은 str변수를 반환
+    """
     stack = []
     result = []
     
@@ -129,7 +139,13 @@ def change_brace(section_text):
 
 
 def handle_latex(section_text):
-    print('enter_latex')
+    """
+    wikipedia 문서에서 사용하는 latex형식의 내용이 있을 시 그를 MathJax에서 사용하는 방식의 latex문법으로 변형 시켜주는 함수
+
+    section_text: section별로 문서의 내용을 정리한 배열
+
+    return: Mathjax에서 적용가능한 latex문법을 사용한 section별 문서 내용을 가진 배열
+    """
     re_text = re.sub(r'{\\', '|', section_text)
     section_change = change_brace(re_text)
     print(section_change)
@@ -154,11 +170,11 @@ def get_sections(sections, dept = 2):
     for section in sections:
         if(section != ''):
             section_text = section.text
-            if('{\\' in section_text):
+            if('{\\' in section_text): #wikipedia의 latex문법의 도입부로 해당 section_text내에 latex문법이 존재하는지 확인함
                 section_text = handle_latex(section_text)
             section_arr = [dept, section.title, section_text]
             
-            if(section.title == "같이 보기"):
+            if(section.title == "같이 보기"): #section의 이름이 '같이 보기'인 경우에만 관련 단어로 제공함
                 related = section_arr
             else:
                 sectionS_arr.append(section_arr)

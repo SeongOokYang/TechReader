@@ -4,23 +4,31 @@
 
 ## 구성 요소
 
-1. manifest.json
-2. scripts 폴더
+1. MathJax - submodule
+2. manifest.json
+3. scripts 폴더
 >+ content_script.js
 >+ service_worker.js
 >+ jquery-3.7.1.min.js
-3. homonym_handler 폴더
+4. homonym_handler 폴더
 >+ model 폴더(hugging face의 bongsoo/albert-small-kor-sbert-v1 모델 저장) <https://huggingface.co/bongsoo/albert-small-kor-sbert-v1>
 >+ homonym_handler.py - 문장 임베딩 및 cosine_similarity 계산 후 반환
-4. sidePanel 폴더
+5. sidePanel 폴더
 >+ side_panel.html
 >+ side_panel.css
 >+ side_panel.js
-5. image 폴더
+6. image 폴더
 >+ image_done.png
 >+ image_ready.png
 >+ loading_screen.gif
-6. wikiSearcher.py
+7. wikiSearcher.py
+
+---
+
+## MathJax - submodule
+
+문서 내의 수식과 같이 추가적인 Rendering이 필요한 LaTeX문법을 처리하기 위해 추가시킨 오픈 소스 js display engine
+GitHub 주소 : <https://github.com/mathjax/MathJax/tree/b6922e564070d20888f680a289381702a266718f>
 
 ---
 
