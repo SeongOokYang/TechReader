@@ -98,7 +98,7 @@ function loadingOn() {
  * loading이 완료된 뒤, loading screen을 내리고 준비된 정보를 표시함
  */
 function loadingFin() {
-    $("body").children().not($(".homonym")).not($(".related")).show();
+    $("body").children().not($(".homonym")).not($(".related")).not($("#userInputDiv")).show();
     $("#loading").hide();
 }
 
@@ -114,9 +114,27 @@ function readyToType() {
             $("#history").show();
             $("#historyDiv").show();
             $("#deleteAllButton").show();
+            $("#userInputDiv").show();
+            $("#inputCancelButton").hide();
+            $("#title").show();
+            $("#logo").show();
         }
     })
     
+}
+
+function inputStart() {
+    $("#userInputDiv").show();
+    $("#inputStartButton").hide();
+    $("#inputCancelButton").show();
+    $("#wordDiv").hide();
+}
+
+function inputCancel() {
+    $("#userInputDiv").hide();
+    $("#inputStartButton").show();
+    $("#inputCancelButton").hide();
+    $("#wordDiv").show();
 }
 
 /**
@@ -209,11 +227,12 @@ function displayHistory(history) {
         let word = hist.text
         let li = document.createElement('LI');
         let spanLink = document.createElement('span');
-        let spanX = document.createElement('span');
+        let imageX = document.createElement('img');
 
-        $(spanX).addClass('delButton'); //history제거 버튼 생성
-        $(spanX).text('X');
-        spanX.addEventListener('click', delHistory)
+        $(imageX).attr('src', '../image/x_icon.png');
+
+        $(imageX).addClass('delButton'); //history제거 버튼 생성
+        imageX.addEventListener('click', delHistory)
 
         let link = document.createElement('a'); //각 history의 클릭 이벤트 설정
         link.href = '#';
@@ -224,7 +243,7 @@ function displayHistory(history) {
 
         spanLink.appendChild(link);
         li.appendChild(spanLink);
-        li.appendChild(spanX);
+        li.appendChild(imageX);
         historyList.appendChild(li);
     });
 }
@@ -389,10 +408,14 @@ let homonymList = document.getElementById("homonymList");
 let userTextInput = document.getElementById("userTextInput");
 let textSendButton = document.getElementById("textSendButton");
 let allHistoryDelete = document.getElementById("deleteAllButton");
+let inputStartButton = document.getElementById("inputStartButton");
+let inputCancelButton = document.getElementById("inputCancelButton");
 
 userTextInput.addEventListener('keypress', enterKeySearchText); //이벤트 리스너 설정
 textSendButton.addEventListener('click', getSearchText);
 allHistoryDelete.addEventListener('click', delAllHistory);
+inputStartButton.addEventListener('click', inputStart);
+inputCancelButton.addEventListener('click', inputCancel);
 
 $('body').on('mousedown', deleteButton); //sidePanel의 모든 node들을 클릭할 시 button을 삭제하도록 함
 

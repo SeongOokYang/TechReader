@@ -7,7 +7,7 @@
         "sidePanel", "contextMenus", "storage"
     ],
     "icons" : {
-        "16":"image/image_done.png"
+        "16":"image/logo.png"
     },
 
     "background": {
