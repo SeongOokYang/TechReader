@@ -17,7 +17,7 @@ from sentence_transformers import SentenceTransformer
 from homonym_handler.homonym_handler import homonym_handling
 
 WIKI = wikipediaapi.Wikipedia('201803851@o.cnu.ac.kr','ko')
-ADDRESS = '127.0.0.1'
+ADDRESS = '0.0.0.0'
 PORT = 8888
 
 okt = Okt()

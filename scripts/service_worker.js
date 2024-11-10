@@ -1,7 +1,7 @@
 let searchOutcome = ""; //검색 결과를 저장하여 사용하는 global 변수
 let isDrag = false; //유저가 sidePanel을 연 방식을 저장하는 global 변수
 let searchHistory = []; //local storage에 저장된 searchHistory를 코드에서 사용하기 위해 저장한 global 변수
-const url = 'http://127.0.0.1:8888/' //서버의 ipv4 주소(현재는 gateway로 설정 - 이후 서버를 구하면 그 주소를 사용)
+const url = 'http://18.220.24.132:8888/' //서버의 ipv4 주소(현재는 gateway로 설정 - 이후 서버를 구하면 그 주소를 사용)
 
 chrome.storage.local.get(['searchHistory']).then((result) => { //플러그인이 시작할 때, chrome의 local storage에서 searchHistory가 존재하면 가져옴
                                                                //플러그인 환경에서 Storage.localStorage에 접근이 불가하기에 사용
@@ -61,7 +61,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {/
         });
 
     } else if(request.action === "get_text") { //검색 요청 페이지의 crawling 요청 이벤트
-        postData('http://127.0.0.1:8888/get_text', message).then((response) => { //서버에 crawling 요청
+        postData(url+'/get_text', message).then((response) => { //서버에 crawling 요청
             sendResponse(response)
         });
 
